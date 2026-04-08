@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { MoneyInput } from '@/components/MoneyInput';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ArrowLeft, Calendar, Target, AlertTriangle, DollarSign, Check } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
@@ -10,26 +10,26 @@ import { getDiasUteis, calcularMetaDiaria, getNomeMes, formatarMoeda } from '@/l
 
 export function MonthConfigPage() {
   const { saveMonthConfig, setCurrentView, selectedDate, getMonthConfig } = useApp();
-  
+
   const anoInicial = selectedDate.getFullYear();
   const mesInicial = selectedDate.getMonth() + 1;
-  
+
   const [ano, setAno] = useState(anoInicial);
   const [mes, setMes] = useState(mesInicial);
   const [diasPlanejados, setDiasPlanejados] = useState(20);
   const [diasFolga, setDiasFolga] = useState<string[]>([]);
-  const [metaMensal, setMetaMensal] = useState(11000);
+  const [metaMensalCentavos, setMetaMensalCentavos] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const diasNoMes = new Date(ano, mes, 0).getDate();
   const diasUteis = getDiasUteis(ano, mes);
-  
+
   useEffect(() => {
     const configExistente = getMonthConfig(ano, mes);
     if (configExistente) {
       setDiasPlanejados(configExistente.diasPlanejados);
       setDiasFolga(configExistente.diasFolga);
-      setMetaMensal(configExistente.metaMensal);
+      setMetaMensalCentavos(Math.round(configExistente.metaMensal * 100));
     } else {
       const domingos: string[] = [];
       for (let dia = 1; dia <= diasNoMes; dia++) {
@@ -54,6 +54,8 @@ export function MonthConfigPage() {
     }
   };
 
+  const metaMensal = metaMensalCentavos / 100;
+
   const handleSave = () => {
     const config: MonthConfig = {
       ano,
@@ -66,7 +68,7 @@ export function MonthConfigPage() {
     };
     saveMonthConfig(config);
     setShowSuccess(true);
-    
+
     setTimeout(() => {
       setShowSuccess(false);
       setCurrentView('dashboard');
@@ -77,11 +79,11 @@ export function MonthConfigPage() {
 
   const diasCalendario = [];
   const primeiroDia = new Date(ano, mes - 1, 1).getDay();
-  
+
   for (let i = 0; i < primeiroDia; i++) {
     diasCalendario.push(null);
   }
-  
+
   for (let dia = 1; dia <= diasNoMes; dia++) {
     diasCalendario.push(dia);
   }
@@ -106,34 +108,34 @@ export function MonthConfigPage() {
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4 transition-colors">
         <div className="text-center">
-          <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Check className="w-10 h-10 text-emerald-400" />
+          <div className="w-20 h-20 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Check className="w-10 h-10 text-emerald-500 dark:text-emerald-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Configurado!</h2>
-          <p className="text-slate-400">{getNomeMes(mes)} de {ano} está pronto</p>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Configurado!</h2>
+          <p className="text-slate-500 dark:text-slate-400">{getNomeMes(mes)} de {ano} está pronto</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 pb-24">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pb-24 transition-colors">
       {/* Header */}
-      <div className="bg-slate-900/80 backdrop-blur-lg sticky top-0 z-40 pt-safe">
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg sticky top-0 z-40 pt-safe border-b border-slate-200 dark:border-transparent">
         <div className="max-w-md mx-auto px-4 py-3">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setCurrentView('dashboard')}
-              className="text-slate-400"
+              className="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold text-white">Configurar Mês</h1>
+              <h1 className="text-xl font-bold text-slate-800 dark:text-white">Configurar Mês</h1>
             </div>
           </div>
         </div>
@@ -141,19 +143,19 @@ export function MonthConfigPage() {
 
       <div className="max-w-md mx-auto px-4 pt-4">
         {/* Seletor de Mês */}
-        <Card className="bg-slate-800/50 border-slate-700 mb-4">
+        <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 mb-4 shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-4">
               <button
                 onClick={() => handleChangeAno(-1)}
-                className="p-2 rounded-lg bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white"
+                className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-white"
               >
                 ←
               </button>
-              <span className="text-lg font-semibold text-white">{ano}</span>
+              <span className="text-lg font-semibold text-slate-800 dark:text-white">{ano}</span>
               <button
                 onClick={() => handleChangeAno(1)}
-                className="p-2 rounded-lg bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white"
+                className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-white"
               >
                 →
               </button>
@@ -166,11 +168,10 @@ export function MonthConfigPage() {
                   <button
                     key={mesNum}
                     onClick={() => handleChangeMes(mesNum)}
-                    className={`py-2 px-1 rounded-lg text-sm font-medium transition-colors ${
-                      isSelected
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white'
-                    }`}
+                    className={`py-2 px-1 rounded-lg text-sm font-medium transition-colors ${isSelected
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-white'
+                      }`}
                   >
                     {nomeMes}
                   </button>
@@ -181,23 +182,22 @@ export function MonthConfigPage() {
         </Card>
 
         {/* Meta Mensal */}
-        <Card className="bg-slate-800/50 border-slate-700 mb-4">
+        <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 mb-4 shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-white flex items-center gap-2">
-              <Target className="w-5 h-5 text-emerald-400" />
+            <CardTitle className="text-lg text-slate-800 dark:text-white flex items-center gap-2">
+              <Target className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
               Meta de Faturamento
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-slate-300">Quanto quer faturar em {getNomeMes(mes)}?</Label>
+              <Label className="text-slate-700 dark:text-slate-300">Quanto quer faturar em {getNomeMes(mes)}?</Label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <Input
-                  type="number"
-                  value={metaMensal}
-                  onChange={(e) => setMetaMensal(Number(e.target.value))}
-                  className="pl-10 bg-slate-900 border-slate-600 text-white"
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
+                <MoneyInput
+                  value={metaMensalCentavos}
+                  onChange={setMetaMensalCentavos}
+                  className="pl-10 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-600 text-slate-800 dark:text-white"
                 />
               </div>
             </div>
@@ -205,13 +205,13 @@ export function MonthConfigPage() {
         </Card>
 
         {/* Dias de Trabalho */}
-        <Card className="bg-slate-800/50 border-slate-700 mb-4">
+        <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 mb-4 shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-white flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-emerald-400" />
+            <CardTitle className="text-lg text-slate-800 dark:text-white flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
               Dias de Trabalho
             </CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-slate-500 dark:text-slate-400">
               Toque nos dias para marcar como folga
             </CardDescription>
           </CardHeader>
@@ -219,7 +219,7 @@ export function MonthConfigPage() {
             <div className="mb-4">
               <div className="grid grid-cols-7 gap-1 text-center mb-2">
                 {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(dia => (
-                  <div key={dia} className="text-xs text-slate-500 font-medium py-1">{dia}</div>
+                  <div key={dia} className="text-xs text-slate-400 dark:text-slate-500 font-medium py-1">{dia}</div>
                 ))}
               </div>
               <div className="grid grid-cols-7 gap-1">
@@ -228,11 +228,10 @@ export function MonthConfigPage() {
                     {dia && (
                       <button
                         onClick={() => toggleFolga(dia)}
-                        className={`w-full h-full rounded-lg text-sm font-medium transition-all ${
-                          isDiaFolga(dia)
-                            ? 'bg-slate-600 text-slate-400'
-                            : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
-                        }`}
+                        className={`w-full h-full rounded-lg text-sm font-medium transition-all ${isDiaFolga(dia)
+                          ? 'bg-slate-200 dark:bg-slate-600 text-slate-500 dark:text-slate-400 border border-transparent dark:border-transparent'
+                          : 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/30 border border-emerald-200 dark:border-transparent'
+                          }`}
                       >
                         {dia}
                       </button>
@@ -244,40 +243,40 @@ export function MonthConfigPage() {
 
             <div className="flex gap-4 text-xs">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-emerald-500/20" />
-                <span className="text-slate-400">Trabalho</span>
+                <div className="w-4 h-4 rounded bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-200 dark:border-transparent" />
+                <span className="text-slate-500 dark:text-slate-400">Trabalho</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-slate-600" />
-                <span className="text-slate-400">Folga</span>
+                <div className="w-4 h-4 rounded bg-slate-200 dark:bg-slate-600" />
+                <span className="text-slate-500 dark:text-slate-400">Folga</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Resumo */}
-        <Card className="bg-slate-800/50 border-slate-700 mb-4">
+        <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 mb-4 shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-white">Resumo de {getNomeMes(mes)}</CardTitle>
+            <CardTitle className="text-lg text-slate-800 dark:text-white">Resumo de {getNomeMes(mes)}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-slate-400">Dias trabalhando:</span>
-              <span className="text-white font-medium">{diasPlanejados} dias</span>
+              <span className="text-slate-500 dark:text-slate-400">Dias trabalhando:</span>
+              <span className="text-slate-800 dark:text-white font-medium">{diasPlanejados} dias</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Dias de folga:</span>
-              <span className="text-white font-medium">{diasFolga.length} dias</span>
+              <span className="text-slate-500 dark:text-slate-400">Dias de folga:</span>
+              <span className="text-slate-800 dark:text-white font-medium">{diasFolga.length} dias</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Meta Bruta/Dia:</span>
-              <span className="text-emerald-400 font-bold">{formatarMoeda(metaDiaria)}</span>
+              <span className="text-slate-500 dark:text-slate-400">Meta Bruta/Dia:</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-bold">{formatarMoeda(metaDiaria)}</span>
             </div>
-            
+
             {metaDiaria > (metaMensal / diasUteis) * 1.2 && (
-              <div className="flex items-start gap-2 bg-amber-500/10 rounded-lg p-3 mt-3">
-                <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-amber-400">
+              <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-500/10 rounded-lg p-3 mt-3 border border-amber-200 dark:border-transparent">
+                <AlertTriangle className="w-5 h-5 text-amber-500 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-amber-700 dark:text-amber-400">
                   Sua meta diária está {Math.round((metaDiaria / (metaMensal / diasUteis) - 1) * 100)}% maior que o normal devido aos dias de folga.
                 </p>
               </div>
@@ -290,7 +289,7 @@ export function MonthConfigPage() {
           <Button
             variant="outline"
             onClick={() => setCurrentView('dashboard')}
-            className="flex-1 border-slate-600 text-slate-300"
+            className="flex-1 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
           >
             Cancelar
           </Button>

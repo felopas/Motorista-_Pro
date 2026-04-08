@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import {
   calcularResumoMensal,
+  calcularDistribuicaoPlataformas,
   formatarMoeda,
   getNomeMes
 } from '@/lib/calculations';
@@ -39,6 +40,11 @@ export function Dashboard() {
   const resumo = monthConfigAtual ? calcularResumoMensal(records, monthConfigAtual) : null;
 
   const needsConfig = !hasMonthConfig(currentYear, currentMonth);
+
+  // Distribuição por plataforma
+  const distribuicaoApps = user?.plataformas
+    ? calcularDistribuicaoPlataformas(records, user.plataformas)
+    : [];
 
   const handleChangeMonth = (delta: number) => {
     let newMonth = currentMonth + delta;
@@ -73,14 +79,14 @@ export function Dashboard() {
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col transition-colors">
       {/* Header compacto */}
-      <div className="bg-slate-900/80 backdrop-blur-lg z-40 pt-safe">
+      <div className="bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-transparent backdrop-blur-lg z-40 pt-safe">
         <div className="max-w-md mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-white">Motorista Pro</h1>
-              <p className="text-xs text-slate-400">
+              <h1 className="text-xl font-bold text-slate-800 dark:text-white">Motorista Pro</h1>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 {user ? `Olá, ${user.nome.split(' ')[0]}` : 'Bem-vindo'}
               </p>
             </div>
@@ -88,7 +94,7 @@ export function Dashboard() {
               variant="ghost"
               size="icon"
               onClick={() => setCurrentView('settings')}
-              className="text-slate-400 hover:text-white h-9 w-9"
+              className="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white h-9 w-9"
             >
               <Settings className="w-5 h-5" />
             </Button>
@@ -97,7 +103,7 @@ export function Dashboard() {
       </div>
 
       {/* Conteúdo principal - flex-1 para ocupar espaço restante */}
-      <div className="flex-1 max-w-md mx-auto px-3 pt-2 pb-2 flex flex-col gap-2 overflow-hidden w-full">
+      <div className="flex-1 max-w-md mx-auto px-3 pt-2 pb-2 flex flex-col gap-2 overflow-y-auto w-full">
         {/* Alerta de Configuração */}
         {needsConfig && (
           <Card className="bg-amber-500/10 border-amber-500/30 flex-shrink-0">
@@ -151,25 +157,25 @@ export function Dashboard() {
               : 'text-red-400';
 
           return (
-            <Card className="bg-slate-800/50 border-slate-700 flex-shrink-0">
+            <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 flex-shrink-0 shadow-sm">
               <CardContent className="p-3">
                 <div className="flex justify-between text-sm">
                   <div>
-                    <p className="text-slate-400 text-[11px]">Dias Restantes</p>
-                    <p className="text-white font-semibold text-base">{diasRestantes}</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-[11px]">Dias Restantes</p>
+                    <p className="text-slate-800 dark:text-white font-semibold text-base">{diasRestantes}</p>
                   </div>
                   <div>
-                    <p className="text-slate-400 text-[11px]">Trabalhados</p>
-                    <p className="text-white font-semibold text-base">{resumo.diasTrabalhados}</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-[11px]">Trabalhados</p>
+                    <p className="text-slate-800 dark:text-white font-semibold text-base">{resumo.diasTrabalhados}</p>
                   </div>
                   <div>
-                    <p className="text-slate-400 text-[11px]">Ganho Hoje</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-[11px]">Ganho Hoje</p>
                     <p className={`${corGanho} font-semibold text-base`}>
                       {formatarMoeda(ganhoHoje)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-slate-400 text-[11px]">Meta/Dia</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-[11px]">Meta/Dia</p>
                     <p className={`${corMeta} font-semibold text-base`}>{formatarMoeda(metaDiaDinamica)}</p>
                   </div>
                 </div>
@@ -180,23 +186,51 @@ export function Dashboard() {
 
         {/* Progresso com valores */}
         {resumo && monthConfigAtual && (
-          <Card className="bg-slate-800/50 border-slate-700 flex-shrink-0">
+          <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 flex-shrink-0 shadow-sm">
             <CardContent className="p-3">
               <div className="flex justify-between items-center mb-1">
-                <span className="text-[11px] text-slate-400">Progresso da Meta</span>
-                <span className="text-sm font-bold text-white">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">Progresso da Meta</span>
+                <span className="text-sm font-bold text-slate-800 dark:text-white">
                   {formatarMoeda(resumo.totalBruto)} / {formatarMoeda(monthConfigAtual.metaMensal)}
                 </span>
               </div>
-              <div className="w-full h-2.5 bg-slate-700 rounded-full overflow-hidden">
+              <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-blue-500 to-emerald-500"
                   style={{ width: `${Math.min(resumo.percentualMeta, 100)}%` }}
                 />
               </div>
-              <p className="text-center text-base font-bold text-white mt-1">
+              <p className="text-center text-base font-bold text-slate-800 dark:text-white mt-1">
                 {resumo.percentualMeta.toFixed(1)}%
               </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Distribuição por App */}
+        {distribuicaoApps.length > 0 && (
+          <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 flex-shrink-0 shadow-sm">
+            <CardContent className="p-3">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2">Por Plataforma</p>
+              <div className="space-y-1.5">
+                {distribuicaoApps.map(app => (
+                  <div key={app.plataformaId} className="flex items-center gap-2">
+                    <span className="text-xs w-5 text-center">{app.icone}</span>
+                    <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          backgroundColor: app.cor === '#000000' ? '#6b7280' : app.cor,
+                          width: `${app.percentual}%`,
+                          opacity: 0.85,
+                        }}
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 w-8 text-right">{app.percentual.toFixed(0)}%</span>
+                    <span className="text-xs text-slate-800 dark:text-white font-medium w-16 text-right">{formatarMoeda(app.totalFaturamento)}</span>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         )}
@@ -210,10 +244,13 @@ export function Dashboard() {
             onSelectDate={handleSelectDate}
           />
         </div>
+
+        {/* Espaçador para o botão fixo + nav */}
+        <div className="h-28 flex-shrink-0" />
       </div>
 
       {/* Botão Registrar Hoje - fixo acima do BottomNav */}
-      <div className="flex-shrink-0 pb-16 px-4">
+      <div className="fixed bottom-[4.5rem] left-0 right-0 px-4 z-40">
         <div className="max-w-md mx-auto">
           <Button
             onClick={handleRegisterToday}

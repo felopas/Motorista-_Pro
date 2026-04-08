@@ -1,4 +1,4 @@
-import type { DailyRecord, MonthConfig, DayStatus } from '@/types';
+import type { DailyRecord, MonthConfig, DayStatus, AppPlataforma } from '@/types';
 
 // Obter dias úteis do mês (excluindo domingos)
 export function getDiasUteis(ano: number, mes: number): number {
@@ -53,8 +53,8 @@ export function calcularLucroLiquido(
 // Calcular líquido por hora
 export function calcularLiquidoPorHora(
   liquido: number,
-  horas: number 
-  
+  horas: number
+
 ): number {
   if (horas === 0) return 0;
   return liquido / horas;
@@ -113,19 +113,19 @@ export function calcularResumoMensal(
 ) {
   const diasTrabalhados = records.filter(r => !r.ehFolga).length;
   const diasFolga = records.filter(r => r.ehFolga).length;
-  
+
   const totalBruto = records.reduce((sum, r) => sum + r.faturamentoBruto, 0);
   const totalCustosVariaveis = records.reduce((sum, r) => sum + r.custoTotal, 0);
   const totalLucro = records.reduce((sum, r) => sum + r.lucroLiquido, 0);
-  
+
   const totalKm = records.reduce((sum, r) => sum + r.kmRodado, 0);
   const totalHoras = records.reduce((sum, r) => sum + r.horasTrabalhadas, 0);
   const totalCorridas = records.reduce((sum, r) => sum + r.numCorridas, 0);
-  
+
   const mediaLucroPorHora = totalHoras > 0 ? totalLucro / totalHoras : 0;
   const mediaLucroPorKm = totalKm > 0 ? totalLucro / totalKm : 0;
   const percentualMeta = calcularPercentualMeta(totalBruto, config.metaMensal);
-  
+
   const { meta: metaDiariaAtual, urgencia } = calcularMetaDiariaAtualizada(
     config.metaMensal,
     totalBruto,
@@ -188,4 +188,59 @@ export function isDomingo(data: string): boolean {
 // Gerar ID único simples
 export function gerarId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+// Calcular distribuição por plataforma
+export interface DistribuicaoPlataforma {
+  plataformaId: string;
+  nome: string;
+  cor: string;
+  icone: string;
+  totalFaturamento: number;
+  totalCorridas: number;
+  totalKm: number;
+  percentual: number;
+  mediaPorCorrida: number;
+  mediaPorKm: number;
+}
+
+export function calcularDistribuicaoPlataformas(
+  records: DailyRecord[],
+  plataformas: AppPlataforma[]
+): DistribuicaoPlataforma[] {
+  const ganhosPorApp = new Map<string, { faturamento: number; corridas: number; km: number }>();
+
+  // Agregar ganhos de todos os registros
+  for (const record of records) {
+    if (!record.ganhosPorApp || record.ganhosPorApp.length === 0) continue;
+    for (const ganho of record.ganhosPorApp) {
+      const existing = ganhosPorApp.get(ganho.plataformaId) || { faturamento: 0, corridas: 0, km: 0 };
+      existing.faturamento += ganho.faturamento;
+      existing.corridas += ganho.numCorridas;
+      existing.km += ganho.kmRodado;
+      ganhosPorApp.set(ganho.plataformaId, existing);
+    }
+  }
+
+  const totalGeral = Array.from(ganhosPorApp.values()).reduce((sum, g) => sum + g.faturamento, 0);
+
+  const resultado: DistribuicaoPlataforma[] = [];
+  for (const [id, dados] of ganhosPorApp) {
+    const plataforma = plataformas.find(p => p.id === id);
+    if (!plataforma) continue;
+    resultado.push({
+      plataformaId: id,
+      nome: plataforma.nome,
+      cor: plataforma.cor,
+      icone: plataforma.icone,
+      totalFaturamento: dados.faturamento,
+      totalCorridas: dados.corridas,
+      totalKm: dados.km,
+      percentual: totalGeral > 0 ? (dados.faturamento / totalGeral) * 100 : 0,
+      mediaPorCorrida: dados.corridas > 0 ? dados.faturamento / dados.corridas : 0,
+      mediaPorKm: dados.km > 0 ? dados.faturamento / dados.km : 0,
+    });
+  }
+
+  return resultado.sort((a, b) => b.totalFaturamento - a.totalFaturamento);
 }
