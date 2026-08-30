@@ -5,6 +5,7 @@ export interface UserProfile {
   carro: string;
   mediaGasolina: number; // km por litro
   precoCombustivel: number; // R$ por litro
+  metaMensalPadrao?: number; // Meta usada como sugestão ao configurar um mês novo
   custosFixos: FixedCost[];
   totalCustosFixos: number;
 }

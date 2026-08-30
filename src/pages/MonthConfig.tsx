@@ -9,21 +9,23 @@ import type { MonthConfig } from '@/types';
 import { getDiasUteis, calcularMetaDiaria, getNomeMes, formatarMoeda } from '@/lib/calculations';
 
 export function MonthConfigPage() {
-  const { saveMonthConfig, setCurrentView, selectedDate, getMonthConfig } = useApp();
-  
+  const { user, saveUser, saveMonthConfig, setCurrentView, selectedDate, getMonthConfig } = useApp();
+
   const anoInicial = selectedDate.getFullYear();
   const mesInicial = selectedDate.getMonth() + 1;
-  
+  const metaPadrao = user?.metaMensalPadrao || 11000;
+
   const [ano, setAno] = useState(anoInicial);
   const [mes, setMes] = useState(mesInicial);
   const [diasPlanejados, setDiasPlanejados] = useState(20);
   const [diasFolga, setDiasFolga] = useState<string[]>([]);
-  const [metaMensal, setMetaMensal] = useState(11000);
+  const [metaMensal, setMetaMensal] = useState(metaPadrao);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [salvarComoPadrao, setSalvarComoPadrao] = useState(false);
 
   const diasNoMes = new Date(ano, mes, 0).getDate();
   const diasUteis = getDiasUteis(ano, mes);
-  
+
   useEffect(() => {
     const configExistente = getMonthConfig(ano, mes);
     if (configExistente) {
@@ -40,7 +42,10 @@ export function MonthConfigPage() {
       }
       setDiasFolga(domingos);
       setDiasPlanejados(diasUteis - domingos.length);
+      setMetaMensal(metaPadrao);
     }
+    setSalvarComoPadrao(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ano, mes, getMonthConfig, diasNoMes, diasUteis]);
 
   const toggleFolga = (dia: number) => {
@@ -65,6 +70,9 @@ export function MonthConfigPage() {
       custoFixoDiario: 0,
     };
     saveMonthConfig(config);
+    if (salvarComoPadrao && user) {
+      saveUser({ ...user, metaMensalPadrao: metaMensal });
+    }
     setShowSuccess(true);
     
     setTimeout(() => {
@@ -200,6 +208,17 @@ export function MonthConfigPage() {
                   className="pl-10 bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
                 />
               </div>
+              {metaMensal !== metaPadrao && (
+                <label className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 pt-1">
+                  <input
+                    type="checkbox"
+                    checked={salvarComoPadrao}
+                    onChange={(e) => setSalvarComoPadrao(e.target.checked)}
+                    className="rounded border-slate-300 dark:border-slate-600 accent-emerald-500"
+                  />
+                  Usar {formatarMoeda(metaMensal)} como meta padrão para os próximos meses
+                </label>
+              )}
             </div>
           </CardContent>
         </Card>

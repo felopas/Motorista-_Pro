@@ -11,10 +11,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, User, Car, Fuel, DollarSign, Download, Upload, Trash2, AlertTriangle, Check, Wrench, Plus, Sun, Moon } from 'lucide-react';
+import { ArrowLeft, User, Car, Fuel, DollarSign, Target, Download, Upload, Trash2, AlertTriangle, Check, Wrench, Plus, Sun, Moon, Bell } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useApp } from '@/contexts/AppContext';
 import { exportData, importData } from '@/lib/storage';
+import { solicitarPermissaoNotificacao } from '@/lib/notifications';
 import { gerarId, formatarMoeda } from '@/lib/calculations';
 import type { FixedCost } from '@/types';
 
@@ -27,14 +28,16 @@ const categoriaLabels: Record<FixedCost['categoria'], string> = {
 };
 
 export function Settings() {
-  const { user, saveUser, resetAllData, setCurrentView } = useApp();
+  const { user, saveUser, resetAllData, setCurrentView, reminderEnabled, setReminderEnabled } = useApp();
   const { theme, setTheme } = useTheme();
   const [showSuccess, setShowSuccess] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [reminderError, setReminderError] = useState('');
   const [nome, setNome] = useState(user?.nome || '');
   const [carro, setCarro] = useState(user?.carro || '');
   const [mediaGasolina, setMediaGasolina] = useState(user?.mediaGasolina?.toString() || '12');
   const [precoCombustivel, setPrecoCombustivel] = useState(user?.precoCombustivel?.toString() || '5.5');
+  const [metaMensalPadrao, setMetaMensalPadrao] = useState(user?.metaMensalPadrao?.toString() || '11000');
 
   const [custosFixos, setCustosFixos] = useState<FixedCost[]>(user?.custosFixos || []);
   const [novoDescricao, setNovoDescricao] = useState('');
@@ -86,6 +89,7 @@ export function Settings() {
       carro,
       mediaGasolina: Number(mediaGasolina) || 12,
       precoCombustivel: Number(precoCombustivel) || 5.5,
+      metaMensalPadrao: Number(metaMensalPadrao) || 11000,
     };
 
     saveUser(updatedUser);
@@ -136,6 +140,20 @@ export function Settings() {
   const handleDeleteAll = () => {
     resetAllData();
     setCurrentView('dashboard');
+  };
+
+  const handleToggleReminder = async (checked: boolean) => {
+    setReminderError('');
+    if (!checked) {
+      setReminderEnabled(false);
+      return;
+    }
+    const permitido = await solicitarPermissaoNotificacao();
+    if (!permitido) {
+      setReminderError('Permissão de notificação negada. Ative em Ajustes do sistema para usar o lembrete.');
+      return;
+    }
+    setReminderEnabled(true);
   };
 
   if (showSuccess) {
@@ -260,6 +278,21 @@ export function Settings() {
                 Usado para estimar o custo de combustível em novos registros.
               </p>
             </div>
+            <div className="space-y-2">
+              <Label className="text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                <Target className="w-4 h-4" /> Meta Mensal Padrão (R$)
+              </Label>
+              <Input
+                type="number"
+                step="1"
+                value={metaMensalPadrao}
+                onChange={(e) => setMetaMensalPadrao(e.target.value)}
+                className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
+              />
+              <p className="text-xs text-slate-400 dark:text-slate-500">
+                Sugerida automaticamente ao configurar um mês novo — pode ser ajustada mês a mês.
+              </p>
+            </div>
           </CardContent>
         </Card>
 
@@ -368,6 +401,34 @@ export function Settings() {
                 Adicionar Custo Fixo
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Lembrete Diário */}
+        <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 mb-4">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg text-slate-900 dark:text-white flex items-center gap-2">
+              <Bell className="w-5 h-5 text-emerald-400" />
+              Lembrete Diário
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm text-slate-700 dark:text-slate-300">Notificação às 20h</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">
+                  Avisa se o dia ainda não foi registrado (só no app instalado no celular).
+                </p>
+              </div>
+              <Switch
+                checked={reminderEnabled}
+                onCheckedChange={handleToggleReminder}
+                className="data-[state=checked]:bg-emerald-600"
+              />
+            </div>
+            {reminderError && (
+              <p className="text-xs text-red-400 mt-2">{reminderError}</p>
+            )}
           </CardContent>
         </Card>
 
