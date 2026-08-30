@@ -16,6 +16,7 @@ import { useTheme } from 'next-themes';
 import { useApp } from '@/contexts/AppContext';
 import { exportData, importData } from '@/lib/storage';
 import { solicitarPermissaoNotificacao } from '@/lib/notifications';
+import { exportAndShareFile } from '@/lib/nativeExport';
 import { gerarId, formatarMoeda } from '@/lib/calculations';
 import type { FixedCost } from '@/types';
 
@@ -105,17 +106,20 @@ export function Settings() {
     setTimeout(() => setShowSuccess(false), 2000);
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const data = exportData();
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `motorista-pro-backup-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const fileName = `motorista-pro-backup-${new Date().toISOString().split('T')[0]}.json`;
+
+    // exportAndShareFile já cai para download via Blob internamente se o
+    // compartilhamento nativo falhar (web/PWA) - não precisa de fallback aqui.
+    await exportAndShareFile({
+      fileName,
+      base64OrText: data,
+      isBase64: false,
+      mimeType: 'application/json',
+      shareTitle: 'Backup Motorista Pro',
+      shareText: 'Backup dos seus dados do Motorista Pro',
+    });
   };
 
   const handleImportClick = () => {

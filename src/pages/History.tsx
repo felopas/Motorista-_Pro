@@ -2,7 +2,8 @@ import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Calendar, ChevronLeft, ChevronRight, TrendingUp, DollarSign, Clock, Gauge, Zap, Route, Trash2 } from 'lucide-react';
+import { ArrowLeft, Calendar, ChevronLeft, ChevronRight, TrendingUp, DollarSign, Clock, Gauge, Zap, Route, Trash2, Download, Loader2 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useApp } from '@/contexts/AppContext';
 import {
   formatarMoeda,
@@ -11,6 +12,7 @@ import {
   calcularResumoMensal,
   calcularDistribuicaoPlataformas
 } from '@/lib/calculations';
+import { exportAndShareFile } from '@/lib/nativeExport';
 import {
   BarChart,
   Bar,
@@ -98,9 +100,12 @@ const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent
 
 export function History() {
   const { user, getMonthConfig, getRecordsByMonth, setCurrentView, setSelectedDate, deleteRecord } = useApp();
+  const { resolvedTheme } = useTheme();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
 
   const handleEditDay = (recordData: string) => {
     setSelectedDate(new Date(recordData));
@@ -198,6 +203,59 @@ export function History() {
     }
   };
 
+  const handleExportPDF = async () => {
+    setExportError('');
+    const element = document.getElementById('history-export-content');
+    if (!element) return;
+
+    setIsExporting(true);
+    try {
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ]);
+
+      const isDark = resolvedTheme
+        ? resolvedTheme === 'dark'
+        : document.documentElement.classList.contains('dark');
+      const backgroundColor = isDark ? '#0f172a' : '#ffffff';
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor,
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+      const base64Data = pdf.output('datauristring').split(',')[1];
+      const fileName = `motorista-pro-${getNomeMes(selectedMonth).toLowerCase()}-${selectedYear}.pdf`;
+
+      await exportAndShareFile({
+        fileName,
+        base64OrText: base64Data,
+        isBase64: true,
+        mimeType: 'application/pdf',
+        shareTitle: 'Relatório Motorista Pro',
+        shareText: `Relatório de ${getNomeMes(selectedMonth)}/${selectedYear}`,
+      });
+    } catch (err) {
+      console.error('Erro ao gerar PDF', err);
+      setExportError('Não foi possível gerar o PDF. Tente novamente.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 pb-24">
       {/* Header */}
@@ -219,26 +277,41 @@ export function History() {
 
       <div className="max-w-md mx-auto px-4 pt-4">
         {/* Seletor de Mês */}
-        <div className="flex items-center justify-between mb-5">
-          <button
-            onClick={handlePrevMonth}
-            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors"
+        <div className="flex items-center gap-2 mb-5">
+          <div className="flex items-center justify-between flex-1">
+            <button
+              onClick={handlePrevMonth}
+              className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+              {getNomeMes(selectedMonth)} {selectedYear}
+            </h2>
+            <button
+              onClick={handleNextMonth}
+              className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleExportPDF}
+            disabled={isExporting || !resumo || monthRecords.length === 0}
+            className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-emerald-600 dark:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-700 w-10 h-10 shrink-0"
+            title="Exportar PDF"
           >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-            {getNomeMes(selectedMonth)} {selectedYear}
-          </h2>
-          <button
-            onClick={handleNextMonth}
-            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
+            {isExporting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+          </Button>
         </div>
+        {exportError && (
+          <p className="text-xs text-red-400 mb-3">{exportError}</p>
+        )}
 
         {resumo && monthRecords.length > 0 ? (
-          <>
+          <div id="history-export-content">
             {/* Cards de destaque com glassmorphism */}
             <div className="grid grid-cols-2 gap-3 mb-5">
               <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/20 p-4">
@@ -687,7 +760,7 @@ export function History() {
                   })}
               </TabsContent>
             </Tabs>
-          </>
+          </div>
         ) : (
           <Card className="bg-white dark:bg-slate-800/30 border-slate-200 dark:border-slate-700/50">
             <CardContent className="p-10 text-center">

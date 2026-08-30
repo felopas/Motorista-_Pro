@@ -38,4 +38,11 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Necessário apenas em Android 10 (API 29) e anteriores para o plugin
+         @capacitor/filesystem escrever em Directory.Documents. Em Android 11+
+         o plugin acessa automaticamente a pasta de arquivos do próprio app,
+         sem precisar desta permissão (por isso maxSdkVersion). -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
 </manifest>
