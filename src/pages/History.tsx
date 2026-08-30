@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Calendar, ChevronLeft, ChevronRight, TrendingUp, DollarSign, Clock, Gauge, Zap, Route } from 'lucide-react';
+import { ArrowLeft, Calendar, ChevronLeft, ChevronRight, TrendingUp, DollarSign, Clock, Gauge, Zap, Route, Trash2 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import {
   formatarMoeda,
@@ -57,9 +57,20 @@ const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent
 };
 
 export function History() {
-  const { getMonthConfig, getRecordsByMonth, setCurrentView } = useApp();
+  const { getMonthConfig, getRecordsByMonth, setCurrentView, setSelectedDate, deleteRecord } = useApp();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const handleEditDay = (recordData: string) => {
+    setSelectedDate(new Date(recordData));
+    setCurrentView('register');
+  };
+
+  const handleDeleteDay = (id: string) => {
+    deleteRecord(id);
+    setConfirmDeleteId(null);
+  };
 
   const monthRecords = getRecordsByMonth(selectedYear, selectedMonth);
   const monthConfig = getMonthConfig(selectedYear, selectedMonth);
@@ -413,13 +424,19 @@ export function History() {
                     const atingiuMeta = record.faturamentoBruto >= metaDiaria;
                     const percentMeta = metaDiaria > 0 ? (record.faturamentoBruto / metaDiaria) * 100 : 0;
 
+                    const isConfirming = confirmDeleteId === record.id;
+
                     return (
                       <Card key={record.id} className="bg-slate-800/30 border-slate-700/50 overflow-hidden">
                         <CardContent className="p-0">
                           <div className="flex items-stretch">
                             {/* Indicador de cor lateral */}
                             <div className={`w-1 flex-shrink-0 ${atingiuMeta ? 'bg-emerald-500' : record.faturamentoBruto >= metaDiaria * 0.8 ? 'bg-amber-500' : 'bg-red-500'}`} />
-                            <div className="flex-1 p-3">
+                            <button
+                              type="button"
+                              onClick={() => handleEditDay(record.data)}
+                              className="flex-1 p-3 text-left"
+                            >
                               <div className="flex items-center justify-between">
                                 <div>
                                   <p className="text-white font-semibold text-sm">
@@ -460,6 +477,35 @@ export function History() {
                                 <p className="text-[9px] text-slate-500 mt-1">
                                   Meta do dia: <span className="text-slate-400 font-medium">{formatarMoeda(metaDiaria)}</span>
                                 </p>
+                              )}
+                            </button>
+                            {/* Ação de excluir */}
+                            <div className="flex items-center pr-2">
+                              {isConfirming ? (
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteDay(record.id)}
+                                    className="text-[10px] font-semibold text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-2 py-1.5"
+                                  >
+                                    Confirmar
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setConfirmDeleteId(null)}
+                                    className="text-[10px] text-slate-400 bg-slate-700/40 rounded-lg px-2 py-1.5"
+                                  >
+                                    Cancelar
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setConfirmDeleteId(record.id)}
+                                  className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
                               )}
                             </div>
                           </div>
