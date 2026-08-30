@@ -20,6 +20,15 @@ export function calcularMetaDiaria(
   return metaMensal / diasPlanejados;
 }
 
+// Calcular custo fixo diário (rateio dos custos fixos ativos pelos dias planejados)
+export function calcularCustoFixoDiario(
+  totalCustosFixos: number,
+  diasPlanejados: number
+): number {
+  if (diasPlanejados === 0) return 0;
+  return totalCustosFixos / diasPlanejados;
+}
+
 // Calcular meta diária dinâmica (recálculo baseado no progresso)
 export function calcularMetaDiariaAtualizada(
   metaMensal: number,
@@ -133,6 +142,9 @@ export function calcularResumoMensal(
     diasTrabalhados
   );
 
+  const custoFixoRateio = config.custoFixoDiario * diasTrabalhados;
+  const totalLucroComFixos = totalLucro - custoFixoRateio;
+
   return {
     totalBruto,
     totalCustosVariaveis,
@@ -147,6 +159,8 @@ export function calcularResumoMensal(
     diasFolga,
     metaDiariaAtual,
     urgencia,
+    custoFixoRateio,
+    totalLucroComFixos,
   };
 }
 

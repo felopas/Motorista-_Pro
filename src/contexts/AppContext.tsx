@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { UserProfile, DailyRecord, MonthConfig, ViewType } from '@/types';
 import * as storage from '@/lib/storage';
-import { calcularMetaDiaria } from '@/lib/calculations';
+import { calcularMetaDiaria, calcularCustoFixoDiario } from '@/lib/calculations';
 
 interface AppContextType {
   // User
@@ -117,7 +117,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const configWithCalculations = {
       ...config,
       metaDiaria: calcularMetaDiaria(config.metaMensal, config.diasPlanejados),
-      custoFixoDiario: 0,
+      custoFixoDiario: calcularCustoFixoDiario(
+        user?.totalCustosFixos ?? 0,
+        config.diasPlanejados
+      ),
     };
     
     const key = `${config.ano}-${String(config.mes).padStart(2, '0')}`;

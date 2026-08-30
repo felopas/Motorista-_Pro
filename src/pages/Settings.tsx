@@ -3,9 +3,27 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, User, Car, Fuel, Download, Trash2, AlertTriangle, Check } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { ArrowLeft, User, Car, Fuel, Download, Trash2, AlertTriangle, Check, Wrench, Plus } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { exportData } from '@/lib/storage';
+import { gerarId, formatarMoeda } from '@/lib/calculations';
+import type { FixedCost } from '@/types';
+
+const categoriaLabels: Record<FixedCost['categoria'], string> = {
+  seguro: 'Seguro',
+  ipva: 'IPVA',
+  financiamento: 'Financiamento',
+  manutencao: 'Manutenção',
+  outro: 'Outro',
+};
 
 export function Settings() {
   const { user, saveUser, resetAllData, setCurrentView } = useApp();
@@ -14,6 +32,45 @@ export function Settings() {
   const [nome, setNome] = useState(user?.nome || '');
   const [carro, setCarro] = useState(user?.carro || '');
   const [mediaGasolina, setMediaGasolina] = useState(user?.mediaGasolina?.toString() || '12');
+
+  const [custosFixos, setCustosFixos] = useState<FixedCost[]>(user?.custosFixos || []);
+  const [novoDescricao, setNovoDescricao] = useState('');
+  const [novoValor, setNovoValor] = useState('');
+  const [novoCategoria, setNovoCategoria] = useState<FixedCost['categoria']>('outro');
+
+  const totalCustosAtivos = custosFixos
+    .filter((c) => c.ativo)
+    .reduce((sum, c) => sum + c.valorMensal, 0);
+
+  const persistCustos = (lista: FixedCost[]) => {
+    if (!user) return;
+    const total = lista.filter((c) => c.ativo).reduce((sum, c) => sum + c.valorMensal, 0);
+    setCustosFixos(lista);
+    saveUser({ ...user, custosFixos: lista, totalCustosFixos: total });
+  };
+
+  const handleAddCusto = () => {
+    if (!novoDescricao.trim() || !novoValor) return;
+    const novo: FixedCost = {
+      id: gerarId(),
+      descricao: novoDescricao.trim(),
+      valorMensal: Number(novoValor) || 0,
+      categoria: novoCategoria,
+      ativo: true,
+    };
+    persistCustos([...custosFixos, novo]);
+    setNovoDescricao('');
+    setNovoValor('');
+    setNovoCategoria('outro');
+  };
+
+  const handleToggleCusto = (id: string) => {
+    persistCustos(custosFixos.map((c) => (c.id === id ? { ...c, ativo: !c.ativo } : c)));
+  };
+
+  const handleDeleteCusto = (id: string) => {
+    persistCustos(custosFixos.filter((c) => c.id !== id));
+  };
 
   const handleSave = () => {
     if (!user) return;
@@ -125,6 +182,114 @@ export function Settings() {
               <p className="text-xs text-slate-500">
                 Esta média é usada apenas para novos registros. Dados salvos não serão alterados.
               </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Custos Fixos */}
+        <Card className="bg-slate-800/50 border-slate-700 mb-4">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg text-white flex items-center gap-2">
+              <Wrench className="w-5 h-5 text-emerald-400" />
+              Custos Fixos
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-xs text-slate-500">
+              Cadastre seus custos mensais fixos (seguro, IPVA, financiamento, manutenção) para
+              ratear no seu lucro diário.
+            </p>
+
+            {custosFixos.length > 0 && (
+              <div className="space-y-2">
+                {custosFixos.map((custo) => (
+                  <div
+                    key={custo.id}
+                    className="flex items-center gap-3 bg-slate-900 border border-slate-600 rounded-lg p-3"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm truncate ${custo.ativo ? 'text-white' : 'text-slate-500 line-through'}`}>
+                        {custo.descricao}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {categoriaLabels[custo.categoria]} · {formatarMoeda(custo.valorMensal)}/mês
+                      </p>
+                    </div>
+                    <Switch
+                      checked={custo.ativo}
+                      onCheckedChange={() => handleToggleCusto(custo.id)}
+                      className="data-[state=checked]:bg-emerald-600"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteCusto(custo.id)}
+                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-8 w-8 shrink-0"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between border-t border-slate-700 pt-3">
+              <span className="text-sm text-slate-400">Total mensal (ativos)</span>
+              <span className="text-sm font-semibold text-emerald-400">
+                {formatarMoeda(totalCustosAtivos)}
+              </span>
+            </div>
+
+            <div className="space-y-3 border-t border-slate-700 pt-4">
+              <div className="space-y-2">
+                <Label className="text-slate-300">Descrição</Label>
+                <Input
+                  value={novoDescricao}
+                  onChange={(e) => setNovoDescricao(e.target.value)}
+                  placeholder="Ex: Seguro do carro"
+                  className="bg-slate-900 border-slate-600 text-white"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Valor Mensal (R$)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={novoValor}
+                    onChange={(e) => setNovoValor(e.target.value)}
+                    placeholder="0,00"
+                    className="bg-slate-900 border-slate-600 text-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Categoria</Label>
+                  <Select
+                    value={novoCategoria}
+                    onValueChange={(v) => setNovoCategoria(v as FixedCost['categoria'])}
+                  >
+                    <SelectTrigger className="bg-slate-900 border-slate-600 text-white w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                      <SelectItem value="seguro">Seguro</SelectItem>
+                      <SelectItem value="ipva">IPVA</SelectItem>
+                      <SelectItem value="financiamento">Financiamento</SelectItem>
+                      <SelectItem value="manutencao">Manutenção</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                onClick={handleAddCusto}
+                disabled={!novoDescricao.trim() || !novoValor}
+                className="w-full border-emerald-600/50 text-emerald-400 hover:bg-emerald-500/10 flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Adicionar Custo Fixo
+              </Button>
             </div>
           </CardContent>
         </Card>
