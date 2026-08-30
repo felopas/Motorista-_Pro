@@ -78,7 +78,7 @@ export function Register({ date }: RegisterProps = {}) {
   const calcularCustoCombustivel = () => {
     if (!user || km === 0) return 0;
     const litrosUsados = km / user.mediaGasolina;
-    return litrosUsados * 5.5; // Preço médio gasolina
+    return litrosUsados * (user.precoCombustivel || 5.5);
   };
 
   const custoCombustivel = calcularCustoCombustivel();

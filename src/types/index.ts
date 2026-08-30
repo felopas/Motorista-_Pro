@@ -4,6 +4,7 @@ export interface UserProfile {
   nome: string;
   carro: string;
   mediaGasolina: number; // km por litro
+  precoCombustivel: number; // R$ por litro
   custosFixos: FixedCost[];
   totalCustosFixos: number;
 }

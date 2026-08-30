@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Car, User, Fuel, Check } from 'lucide-react';
+import { Car, User, Fuel, DollarSign, Check } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import type { UserProfile } from '@/types';
 
@@ -12,6 +12,7 @@ export function Onboarding() {
   const [nome, setNome] = useState('');
   const [carro, setCarro] = useState('');
   const [mediaGasolina, setMediaGasolina] = useState('');
+  const [precoCombustivel, setPrecoCombustivel] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handleFinish = () => {
@@ -19,6 +20,7 @@ export function Onboarding() {
       nome,
       carro,
       mediaGasolina: Number(mediaGasolina) || 12,
+      precoCombustivel: Number(precoCombustivel) || 5.5,
       custosFixos: [],
       totalCustosFixos: 0,
     };
@@ -101,6 +103,24 @@ export function Onboarding() {
               />
               <p className="text-xs text-slate-500">
                 Quantos quilômetros seu carro faz com 1 litro de gasolina
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="preco" className="text-slate-300 flex items-center gap-2">
+                <DollarSign className="w-4 h-4" /> Preço do combustível (R$/litro)
+              </Label>
+              <Input
+                id="preco"
+                type="number"
+                step="0.01"
+                value={precoCombustivel}
+                onChange={(e) => setPrecoCombustivel(e.target.value)}
+                placeholder="Ex: 5,50"
+                className="bg-slate-900 border-slate-600 text-white placeholder:text-slate-500"
+              />
+              <p className="text-xs text-slate-500">
+                Usado para estimar o custo de combustível em cada registro
               </p>
             </div>
 

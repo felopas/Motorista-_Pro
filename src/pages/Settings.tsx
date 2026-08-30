@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,9 +11,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, User, Car, Fuel, Download, Trash2, AlertTriangle, Check, Wrench, Plus } from 'lucide-react';
+import { ArrowLeft, User, Car, Fuel, DollarSign, Download, Upload, Trash2, AlertTriangle, Check, Wrench, Plus } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
-import { exportData } from '@/lib/storage';
+import { exportData, importData } from '@/lib/storage';
 import { gerarId, formatarMoeda } from '@/lib/calculations';
 import type { FixedCost } from '@/types';
 
@@ -32,11 +32,14 @@ export function Settings() {
   const [nome, setNome] = useState(user?.nome || '');
   const [carro, setCarro] = useState(user?.carro || '');
   const [mediaGasolina, setMediaGasolina] = useState(user?.mediaGasolina?.toString() || '12');
+  const [precoCombustivel, setPrecoCombustivel] = useState(user?.precoCombustivel?.toString() || '5.5');
 
   const [custosFixos, setCustosFixos] = useState<FixedCost[]>(user?.custosFixos || []);
   const [novoDescricao, setNovoDescricao] = useState('');
   const [novoValor, setNovoValor] = useState('');
   const [novoCategoria, setNovoCategoria] = useState<FixedCost['categoria']>('outro');
+  const [importError, setImportError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const totalCustosAtivos = custosFixos
     .filter((c) => c.ativo)
@@ -80,8 +83,9 @@ export function Settings() {
       nome,
       carro,
       mediaGasolina: Number(mediaGasolina) || 12,
+      precoCombustivel: Number(precoCombustivel) || 5.5,
     };
-    
+
     saveUser(updatedUser);
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 2000);
@@ -98,6 +102,33 @@ export function Settings() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const handleImportClick = () => {
+    setImportError('');
+    fileInputRef.current?.click();
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    if (!window.confirm('Importar backup vai substituir todos os dados atuais. Deseja continuar?')) {
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const success = importData(text);
+      if (success) {
+        window.location.reload();
+      } else {
+        setImportError('Não foi possível importar: arquivo de backup inválido.');
+      }
+    } catch {
+      setImportError('Não foi possível importar: arquivo de backup inválido.');
+    }
   };
 
   const handleDeleteAll = () => {
@@ -181,6 +212,21 @@ export function Settings() {
               />
               <p className="text-xs text-slate-500">
                 Esta média é usada apenas para novos registros. Dados salvos não serão alterados.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-slate-300 flex items-center gap-2">
+                <DollarSign className="w-4 h-4" /> Preço do Combustível (R$/litro)
+              </Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={precoCombustivel}
+                onChange={(e) => setPrecoCombustivel(e.target.value)}
+                className="bg-slate-900 border-slate-600 text-white"
+              />
+              <p className="text-xs text-slate-500">
+                Usado para estimar o custo de combustível em novos registros.
               </p>
             </div>
           </CardContent>
@@ -308,6 +354,24 @@ export function Settings() {
               <Download className="w-4 h-4" />
               Exportar Backup
             </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json"
+              className="hidden"
+              onChange={handleImportFile}
+            />
+            <Button
+              variant="outline"
+              onClick={handleImportClick}
+              className="w-full border-slate-600 text-slate-300 hover:bg-slate-700 flex items-center gap-2"
+            >
+              <Upload className="w-4 h-4" />
+              Importar Backup
+            </Button>
+            {importError && (
+              <p className="text-xs text-red-400">{importError}</p>
+            )}
           </CardContent>
         </Card>
 
