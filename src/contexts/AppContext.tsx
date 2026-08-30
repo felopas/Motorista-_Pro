@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from '
 import type { UserProfile, DailyRecord, MonthConfig, ViewType } from '@/types';
 import * as storage from '@/lib/storage';
 import { calcularMetaDiaria, calcularCustoFixoDiario, getDiasUteis } from '@/lib/calculations';
-import { sincronizarLembretesDiarios } from '@/lib/notifications';
+import { sincronizarLembretesDiarios, registrarListenerNotificacao, HORARIO_PADRAO } from '@/lib/notifications';
 
 interface AppContextType {
   // User
@@ -43,6 +43,8 @@ interface AppContextType {
   // Lembrete diário
   reminderEnabled: boolean;
   setReminderEnabled: (enabled: boolean) => void;
+  reminderTime: string;
+  setReminderTime: (time: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -56,6 +58,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [reminderEnabled, setReminderEnabledState] = useState(false);
+  const [reminderTime, setReminderTimeState] = useState(HORARIO_PADRAO);
 
   const buscarRegistro = (lista: DailyRecord[], data: string) => lista.find(r => r.data === data);
 
@@ -65,11 +68,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const savedRecords = storage.getRecords();
       const savedMonthConfigs = storage.getAllMonthConfigs();
       const savedReminderEnabled = storage.getReminderEnabled();
+      const savedReminderTime = storage.getReminderTime();
 
       if (savedUser) setUser(savedUser);
       if (savedRecords) setRecords(savedRecords);
       if (savedMonthConfigs) setMonthConfigs(savedMonthConfigs);
       setReminderEnabledState(savedReminderEnabled);
+      setReminderTimeState(savedReminderTime);
 
       const now = new Date();
       const currentKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -78,16 +83,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
 
       setIsLoading(false);
-      sincronizarLembretesDiarios(savedReminderEnabled, (data) => buscarRegistro(savedRecords, data));
+      sincronizarLembretesDiarios(savedReminderEnabled, savedReminderTime, (data) => buscarRegistro(savedRecords, data));
     };
 
     loadData();
+
+    registrarListenerNotificacao((data) => {
+      setSelectedDate(new Date(`${data}T12:00:00`));
+      setCurrentView('register');
+    });
   }, []);
 
   const setReminderEnabled = (enabled: boolean) => {
     storage.setReminderEnabled(enabled);
     setReminderEnabledState(enabled);
-    sincronizarLembretesDiarios(enabled, (data) => buscarRegistro(storage.getRecords(), data));
+    sincronizarLembretesDiarios(enabled, reminderTime, (data) => buscarRegistro(storage.getRecords(), data));
+  };
+
+  const setReminderTime = (time: string) => {
+    storage.setReminderTime(time);
+    setReminderTimeState(time);
+    sincronizarLembretesDiarios(reminderEnabled, time, (data) => buscarRegistro(storage.getRecords(), data));
   };
 
   const saveUser = (newUser: UserProfile) => {
@@ -99,21 +115,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     storage.saveRecord(record);
     const updated = storage.getRecords();
     setRecords(updated);
-    sincronizarLembretesDiarios(reminderEnabled, (data) => buscarRegistro(updated, data));
+    sincronizarLembretesDiarios(reminderEnabled, reminderTime, (data) => buscarRegistro(updated, data));
   };
 
   const updateRecord = (record: DailyRecord) => {
     storage.saveRecord(record);
     const updated = storage.getRecords();
     setRecords(updated);
-    sincronizarLembretesDiarios(reminderEnabled, (data) => buscarRegistro(updated, data));
+    sincronizarLembretesDiarios(reminderEnabled, reminderTime, (data) => buscarRegistro(updated, data));
   };
 
   const deleteRecord = (id: string) => {
     storage.deleteRecord(id);
     const updated = storage.getRecords();
     setRecords(updated);
-    sincronizarLembretesDiarios(reminderEnabled, (data) => buscarRegistro(updated, data));
+    sincronizarLembretesDiarios(reminderEnabled, reminderTime, (data) => buscarRegistro(updated, data));
   };
 
   const getRecordByDate = (date: string) => {
@@ -189,7 +205,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setMonthConfigs({});
     setCurrentMonthConfig(null);
     setReminderEnabledState(false);
-    sincronizarLembretesDiarios(false, () => undefined);
+    sincronizarLembretesDiarios(false, reminderTime, () => undefined);
   };
 
   const value: AppContextType = {
@@ -216,6 +232,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     resetAllData,
     reminderEnabled,
     setReminderEnabled,
+    reminderTime,
+    setReminderTime,
   };
 
   return (

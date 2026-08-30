@@ -28,7 +28,7 @@ const categoriaLabels: Record<FixedCost['categoria'], string> = {
 };
 
 export function Settings() {
-  const { user, saveUser, resetAllData, setCurrentView, reminderEnabled, setReminderEnabled } = useApp();
+  const { user, saveUser, resetAllData, setCurrentView, reminderEnabled, setReminderEnabled, reminderTime, setReminderTime } = useApp();
   const { theme, setTheme } = useTheme();
   const [showSuccess, setShowSuccess] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -412,12 +412,12 @@ export function Settings() {
               Lembrete Diário
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm text-slate-700 dark:text-slate-300">Notificação às 20h</p>
+                <p className="text-sm text-slate-700 dark:text-slate-300">Ativar lembrete</p>
                 <p className="text-xs text-slate-400 dark:text-slate-500">
-                  Avisa se o dia ainda não foi registrado (só no app instalado no celular).
+                  Avisa se o dia ainda não foi registrado (só no app instalado no celular). Ao tocar na notificação, abre direto o registro do dia.
                 </p>
               </div>
               <Switch
@@ -426,8 +426,17 @@ export function Settings() {
                 className="data-[state=checked]:bg-emerald-600"
               />
             </div>
+            <div className="space-y-2">
+              <Label className="text-slate-600 dark:text-slate-300">Horário do lembrete</Label>
+              <Input
+                type="time"
+                value={reminderTime}
+                onChange={(e) => setReminderTime(e.target.value)}
+                className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white w-32"
+              />
+            </div>
             {reminderError && (
-              <p className="text-xs text-red-400 mt-2">{reminderError}</p>
+              <p className="text-xs text-red-400">{reminderError}</p>
             )}
           </CardContent>
         </Card>

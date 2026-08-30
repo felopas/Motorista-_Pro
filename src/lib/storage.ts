@@ -5,6 +5,7 @@ const STORAGE_KEYS = {
   RECORDS: 'motorista_pro_records',
   MONTH_CONFIGS: 'motorista_pro_month_configs', // Agora armazena múltiplos meses
   REMINDER_ENABLED: 'motorista_pro_reminder_enabled',
+  REMINDER_TIME: 'motorista_pro_reminder_time',
 };
 
 // Lembrete diário (notificação local)
@@ -14,6 +15,14 @@ export function getReminderEnabled(): boolean {
 
 export function setReminderEnabled(enabled: boolean): void {
   localStorage.setItem(STORAGE_KEYS.REMINDER_ENABLED, String(enabled));
+}
+
+export function getReminderTime(): string {
+  return localStorage.getItem(STORAGE_KEYS.REMINDER_TIME) || '20:00';
+}
+
+export function setReminderTime(time: string): void {
+  localStorage.setItem(STORAGE_KEYS.REMINDER_TIME, time);
 }
 
 // User Profile
