@@ -1,5 +1,27 @@
 // Tipos principais do App Motorista Pro
 
+export interface AppPlataforma {
+  id: string;
+  nome: string;
+  cor: string;
+  icone: string;
+  ativo: boolean;
+}
+
+export const PLATAFORMAS_PADRAO: AppPlataforma[] = [
+  { id: 'uber', nome: 'Uber', cor: '#000000', icone: '🚗', ativo: true },
+  { id: '99', nome: '99', cor: '#FFCC00', icone: '🚕', ativo: true },
+  { id: 'indriver', nome: 'InDriver', cor: '#2ECC40', icone: '🚙', ativo: false },
+  { id: 'ifood', nome: 'iFood', cor: '#EA1D2C', icone: '🛵', ativo: false },
+];
+
+export interface GanhoPlataforma {
+  plataformaId: string;
+  faturamento: number;
+  numCorridas: number;
+  kmRodado: number;
+}
+
 export interface UserProfile {
   nome: string;
   carro: string;
@@ -8,6 +30,7 @@ export interface UserProfile {
   metaMensalPadrao?: number; // Meta usada como sugestão ao configurar um mês novo
   custosFixos: FixedCost[];
   totalCustosFixos: number;
+  plataformas?: AppPlataforma[];
 }
 
 export interface FixedCost {
@@ -33,6 +56,7 @@ export interface DailyRecord {
   ehFolga: boolean;
   observacoes?: string;
   metaDiaDinamica?: number; // Meta dinâmica do dia no momento do registro
+  ganhosPorApp?: GanhoPlataforma[]; // Detalhamento por plataforma (retrocompatível)
 }
 
 export interface MonthConfig {

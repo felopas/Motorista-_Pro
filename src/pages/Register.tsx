@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { MoneyInput } from '@/components/MoneyInput';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, ArrowRight, DollarSign, Gauge, Clock, Car, Check, Moon, Utensils, Receipt, Trash2 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
-import type { DailyRecord } from '@/types';
+import type { DailyRecord, GanhoPlataforma } from '@/types';
 import {
   gerarId,
   calcularLucroLiquido,
@@ -32,10 +33,27 @@ export function Register({ date }: RegisterProps = {}) {
   // Folga
   const [ehFolga, setEhFolga] = useState(existingRecord?.ehFolga ?? false);
 
-  // Step 1: Faturamento
-  const [faturamentoBruto, setFaturamentoBruto] = useState(
-    existingRecord && !existingRecord.ehFolga ? String(existingRecord.faturamentoBruto) : ''
-  );
+  // Plataformas ativas do usuário
+  const plataformasAtivas = user?.plataformas?.filter(p => p.ativo) ?? [];
+  const temMultiplasPlataformas = plataformasAtivas.length > 1;
+
+  // Step 1: Faturamento (valores em centavos - MoneyInput estilo ATM)
+  const [faturamentoBrutoCentavos, setFaturamentoBrutoCentavos] = useState<number>(() => {
+    if (existingRecord && !existingRecord.ehFolga) {
+      return Math.round(existingRecord.faturamentoBruto * 100);
+    }
+    return 0;
+  });
+  const [ganhosPorAppCentavos, setGanhosPorAppCentavos] = useState<Record<string, number>>(() => {
+    const initial: Record<string, number> = {};
+    plataformasAtivas.forEach(p => { initial[p.id] = 0; });
+    if (existingRecord?.ganhosPorApp) {
+      for (const g of existingRecord.ganhosPorApp) {
+        initial[g.plataformaId] = Math.round(g.faturamento * 100);
+      }
+    }
+    return initial;
+  });
 
   // Step 2: Dados da Jornada
   const [kmRodado, setKmRodado] = useState(
@@ -68,7 +86,9 @@ export function Register({ date }: RegisterProps = {}) {
   }, [step]);
 
   // Cálculos
-  const bruto = Number(faturamentoBruto) || 0;
+  const bruto = temMultiplasPlataformas
+    ? Object.values(ganhosPorAppCentavos).reduce((sum, v) => sum + v / 100, 0)
+    : faturamentoBrutoCentavos / 100;
   const km = Number(kmRodado) || 0;
   const horas = Number(horasTrabalhadas) || 0;
   const alimentacao = Number(custoAlimentacao) || 0;
@@ -126,6 +146,31 @@ export function Register({ date }: RegisterProps = {}) {
   const handleSubmit = () => {
     if (!ehFolga && (!bruto || !horas)) return;
 
+    // Montar detalhamento por plataforma (retrocompatível: fica undefined quando não há plataformas)
+    const ganhosPlatArray: GanhoPlataforma[] = [];
+    if (!ehFolga) {
+      if (temMultiplasPlataformas) {
+        for (const p of plataformasAtivas) {
+          const val = (ganhosPorAppCentavos[p.id] || 0) / 100;
+          if (val > 0) {
+            ganhosPlatArray.push({
+              plataformaId: p.id,
+              faturamento: val,
+              numCorridas: 0,
+              kmRodado: 0,
+            });
+          }
+        }
+      } else if (plataformasAtivas.length === 1) {
+        ganhosPlatArray.push({
+          plataformaId: plataformasAtivas[0].id,
+          faturamento: bruto,
+          numCorridas: Number(numCorridas) || 0,
+          kmRodado: km,
+        });
+      }
+    }
+
     const record: DailyRecord = ehFolga
       ? {
         id: existingRecord?.id || gerarId(),
@@ -156,6 +201,7 @@ export function Register({ date }: RegisterProps = {}) {
         lucroLiquido,
         ehFolga: false,
         metaDiaDinamica: metaDiaDinamica,
+        ganhosPorApp: ganhosPlatArray.length > 0 ? ganhosPlatArray : undefined,
       };
 
     addRecord(record);
@@ -336,23 +382,67 @@ export function Register({ date }: RegisterProps = {}) {
                       <DollarSign className="w-8 h-8 text-emerald-400" />
                     </div>
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Quanto você faturou?</h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">Informe o valor total do seu faturamento bruto</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">
+                      {temMultiplasPlataformas
+                        ? 'Informe o faturamento de cada app'
+                        : 'Informe o valor total do seu faturamento bruto'}
+                    </p>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-slate-300 text-lg">Faturamento Bruto</Label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl text-slate-400 dark:text-slate-500">R$</span>
-                      <Input
-                        type="number"
-                        value={faturamentoBruto}
-                        onChange={(e) => setFaturamentoBruto(e.target.value)}
-                        placeholder="0,00"
-                        className="pl-14 pr-4 py-6 text-3xl font-bold bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white text-center"
-                        autoFocus
-                      />
+                  {temMultiplasPlataformas ? (
+                    <div className="space-y-3">
+                      {plataformasAtivas.map((p, index) => (
+                        <div key={p.id} className="space-y-1.5">
+                          <Label className="text-slate-700 dark:text-slate-300 flex items-center gap-2 text-sm">
+                            <span className="text-base">{p.icone}</span>
+                            <span>{p.nome}</span>
+                          </Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg text-slate-400 dark:text-slate-500">R$</span>
+                            <MoneyInput
+                              value={ganhosPorAppCentavos[p.id] || 0}
+                              onChange={(val) => setGanhosPorAppCentavos(prev => ({ ...prev, [p.id]: val }))}
+                              placeholder="0,00"
+                              className="pl-12 pr-4 py-4 text-xl font-bold bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
+                              autoFocus={index === 0}
+                            />
+                            <div
+                              className="absolute left-0 top-0 w-1 h-full rounded-l-md"
+                              style={{ backgroundColor: p.cor === '#000000' ? '#6b7280' : p.cor }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+
+                      <div className="bg-white dark:bg-slate-800/50 rounded-lg p-3 border border-slate-200 dark:border-slate-700 mt-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">Total Bruto</span>
+                          <span className="text-emerald-600 dark:text-emerald-400 font-bold text-xl">
+                            {formatarMoeda(bruto)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Label className="text-slate-700 dark:text-slate-300 text-lg">
+                        Faturamento Bruto
+                        {plataformasAtivas.length === 1 && (
+                          <span className="text-slate-400 dark:text-slate-500 text-sm ml-2">({plataformasAtivas[0].icone} {plataformasAtivas[0].nome})</span>
+                        )}
+                      </Label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl text-slate-400 dark:text-slate-500">R$</span>
+                        <MoneyInput
+                          value={faturamentoBrutoCentavos}
+                          onChange={setFaturamentoBrutoCentavos}
+                          placeholder="0,00"
+                          className="pl-14 pr-4 py-6 text-3xl font-bold bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white text-center"
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   {bruto > 0 && (
                     <div className="bg-white dark:bg-slate-800/50 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
@@ -374,7 +464,7 @@ export function Register({ date }: RegisterProps = {}) {
           {step === 2 && (
             ehFolga ? (
               <div className="text-center py-12">
-                <Moon className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+                <Moon className="w-10 h-10 text-slate-400 dark:text-slate-600 mx-auto mb-3" />
                 <p className="text-slate-500 dark:text-slate-400">Dia de folga — sem dados de jornada para preencher</p>
               </div>
             ) : (
@@ -389,7 +479,7 @@ export function Register({ date }: RegisterProps = {}) {
 
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-slate-300 flex items-center gap-2">
+                    <Label className="text-slate-700 dark:text-slate-300 flex items-center gap-2">
                       <Gauge className="w-4 h-4" /> Quilômetros rodados
                     </Label>
                     <Input
@@ -403,7 +493,7 @@ export function Register({ date }: RegisterProps = {}) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-300 flex items-center gap-2">
+                    <Label className="text-slate-700 dark:text-slate-300 flex items-center gap-2">
                       <Clock className="w-4 h-4" /> Horas trabalhadas
                     </Label>
                     <Input
@@ -417,7 +507,7 @@ export function Register({ date }: RegisterProps = {}) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-300 flex items-center gap-2">
+                    <Label className="text-slate-700 dark:text-slate-300 flex items-center gap-2">
                       <Car className="w-4 h-4" /> Nº de corridas (opcional)
                     </Label>
                     <Input
@@ -430,7 +520,7 @@ export function Register({ date }: RegisterProps = {}) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-300 flex items-center gap-2">
+                    <Label className="text-slate-700 dark:text-slate-300 flex items-center gap-2">
                       <Utensils className="w-4 h-4" /> Alimentação (opcional)
                     </Label>
                     <Input
@@ -443,7 +533,7 @@ export function Register({ date }: RegisterProps = {}) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-300 flex items-center gap-2">
+                    <Label className="text-slate-700 dark:text-slate-300 flex items-center gap-2">
                       <Receipt className="w-4 h-4" /> Outros gastos (opcional)
                     </Label>
                     <Input
@@ -524,13 +614,36 @@ export function Register({ date }: RegisterProps = {}) {
                       )}
                     </div>
 
+                    {/* Detalhamento por App (se múltiplas plataformas) */}
+                    {temMultiplasPlataformas && (
+                      <>
+                        <div className="border-t border-slate-200 dark:border-slate-700" />
+                        <div className="space-y-1.5">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-2">Por Plataforma</p>
+                          {plataformasAtivas.map(p => {
+                            const val = (ganhosPorAppCentavos[p.id] || 0) / 100;
+                            if (val === 0) return null;
+                            return (
+                              <div key={p.id} className="flex items-center justify-between text-sm">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.cor === '#000000' ? '#6b7280' : p.cor }} />
+                                  <span className="text-slate-600 dark:text-slate-400">{p.icone} {p.nome}</span>
+                                </div>
+                                <span className="text-slate-900 dark:text-white font-medium">{formatarMoeda(val)}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+
                     {/* Separador */}
                     <div className="border-t border-slate-200 dark:border-slate-700" />
 
                     {/* Mini cálculo visual */}
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-300 text-sm">Faturamento Bruto</span>
+                        <span className="text-slate-700 dark:text-slate-300 text-sm">Faturamento Bruto</span>
                         <span className="text-emerald-400 font-bold text-lg">{formatarMoeda(bruto)}</span>
                       </div>
                       <div className="flex justify-between items-center">
@@ -578,7 +691,7 @@ export function Register({ date }: RegisterProps = {}) {
             <Button
               variant="outline"
               onClick={handleBack}
-              className="flex-1 border-slate-300 dark:border-slate-600 text-slate-300 py-5"
+              className="flex-1 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 py-5"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Voltar
@@ -587,7 +700,7 @@ export function Register({ date }: RegisterProps = {}) {
             <Button
               variant="outline"
               onClick={() => setCurrentView('dashboard')}
-              className="flex-1 border-slate-300 dark:border-slate-600 text-slate-300 py-5"
+              className="flex-1 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 py-5"
             >
               Cancelar
             </Button>

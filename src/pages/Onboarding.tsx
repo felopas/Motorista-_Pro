@@ -5,7 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Car, User, Fuel, DollarSign, Check } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
-import type { UserProfile } from '@/types';
+import type { UserProfile, AppPlataforma } from '@/types';
+import { PLATAFORMAS_PADRAO } from '@/types';
 
 export function Onboarding() {
   const { saveUser, setCurrentView, setSelectedDate } = useApp();
@@ -13,7 +14,16 @@ export function Onboarding() {
   const [carro, setCarro] = useState('');
   const [mediaGasolina, setMediaGasolina] = useState('');
   const [precoCombustivel, setPrecoCombustivel] = useState('');
+  const [plataformas, setPlataformas] = useState<AppPlataforma[]>(
+    PLATAFORMAS_PADRAO.map(p => ({ ...p }))
+  );
   const [showSuccess, setShowSuccess] = useState(false);
+
+  const togglePlataforma = (id: string) => {
+    setPlataformas(prev =>
+      prev.map(p => p.id === id ? { ...p, ativo: !p.ativo } : p)
+    );
+  };
 
   const handleFinish = () => {
     const user: UserProfile = {
@@ -23,6 +33,7 @@ export function Onboarding() {
       precoCombustivel: Number(precoCombustivel) || 5.5,
       custosFixos: [],
       totalCustosFixos: 0,
+      plataformas,
     };
     saveUser(user);
     setShowSuccess(true);
@@ -62,7 +73,7 @@ export function Onboarding() {
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="nome" className="text-slate-300 flex items-center gap-2">
+              <Label htmlFor="nome" className="text-slate-700 dark:text-slate-300 flex items-center gap-2">
                 <User className="w-4 h-4" /> Seu nome
               </Label>
               <Input
@@ -76,7 +87,7 @@ export function Onboarding() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="carro" className="text-slate-300 flex items-center gap-2">
+              <Label htmlFor="carro" className="text-slate-700 dark:text-slate-300 flex items-center gap-2">
                 <Car className="w-4 h-4" /> Seu carro
               </Label>
               <Input
@@ -89,7 +100,7 @@ export function Onboarding() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="media" className="text-slate-300 flex items-center gap-2">
+              <Label htmlFor="media" className="text-slate-700 dark:text-slate-300 flex items-center gap-2">
                 <Fuel className="w-4 h-4" /> Média do carro (km/l)
               </Label>
               <Input
@@ -107,7 +118,7 @@ export function Onboarding() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="preco" className="text-slate-300 flex items-center gap-2">
+              <Label htmlFor="preco" className="text-slate-700 dark:text-slate-300 flex items-center gap-2">
                 <DollarSign className="w-4 h-4" /> Preço do combustível (R$/litro)
               </Label>
               <Input
@@ -121,6 +132,32 @@ export function Onboarding() {
               />
               <p className="text-xs text-slate-400 dark:text-slate-500">
                 Usado para estimar o custo de combustível em cada registro
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-slate-700 dark:text-slate-300">Quais apps você usa?</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {plataformas.map(p => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => togglePlataforma(p.id)}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border-2 transition-all duration-200 ${p.ativo
+                      ? 'border-emerald-500/60 bg-emerald-50 dark:bg-emerald-500/10 text-slate-900 dark:text-white'
+                      : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/30 text-slate-400 dark:text-slate-500'
+                      }`}
+                  >
+                    <span className="text-lg">{p.icone}</span>
+                    <span className="font-medium text-sm">{p.nome}</span>
+                    {p.ativo && (
+                      <Check className="w-3.5 h-3.5 text-emerald-400 ml-auto" />
+                    )}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-slate-400 dark:text-slate-500">
+                Você pode alterar isso depois nas Configurações
               </p>
             </div>
 

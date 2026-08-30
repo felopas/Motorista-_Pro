@@ -11,13 +11,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, User, Car, Fuel, DollarSign, Target, Download, Upload, Trash2, AlertTriangle, Check, Wrench, Plus, Sun, Moon, Bell } from 'lucide-react';
+import { ArrowLeft, User, Car, Fuel, DollarSign, Target, Download, Upload, Trash2, AlertTriangle, Check, Wrench, Plus, Sun, Moon, Bell, Smartphone } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useApp } from '@/contexts/AppContext';
 import { exportData, importData } from '@/lib/storage';
 import { solicitarPermissaoNotificacao } from '@/lib/notifications';
 import { gerarId, formatarMoeda } from '@/lib/calculations';
 import type { FixedCost } from '@/types';
+
+const CORES_DISPONIVEIS = ['#3B82F6', '#8B5CF6', '#EC4899', '#F97316', '#14B8A6', '#EF4444', '#84CC16'];
+const ICONES_DISPONIVEIS = ['🚗', '🚕', '🚙', '🛵', '🏍️', '🚐', '📦', '🍔'];
 
 const categoriaLabels: Record<FixedCost['categoria'], string> = {
   seguro: 'Seguro',
@@ -28,11 +31,16 @@ const categoriaLabels: Record<FixedCost['categoria'], string> = {
 };
 
 export function Settings() {
-  const { user, saveUser, resetAllData, setCurrentView, reminderEnabled, setReminderEnabled, reminderTime, setReminderTime } = useApp();
+  const { user, saveUser, resetAllData, setCurrentView, reminderEnabled, setReminderEnabled, reminderTime, setReminderTime, togglePlataforma, addPlataforma } = useApp();
   const { theme, setTheme } = useTheme();
   const [showSuccess, setShowSuccess] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [reminderError, setReminderError] = useState('');
+
+  // Plataformas
+  const [showAddApp, setShowAddApp] = useState(false);
+  const [novoAppNome, setNovoAppNome] = useState('');
+  const [novoAppIcone, setNovoAppIcone] = useState('🚗');
   const [nome, setNome] = useState(user?.nome || '');
   const [carro, setCarro] = useState(user?.carro || '');
   const [mediaGasolina, setMediaGasolina] = useState(user?.mediaGasolina?.toString() || '12');
@@ -140,6 +148,15 @@ export function Settings() {
   const handleDeleteAll = () => {
     resetAllData();
     setCurrentView('dashboard');
+  };
+
+  const handleAddPlataforma = () => {
+    if (!novoAppNome.trim()) return;
+    const corAleatoria = CORES_DISPONIVEIS[Math.floor(Math.random() * CORES_DISPONIVEIS.length)];
+    addPlataforma(novoAppNome.trim(), novoAppIcone, corAleatoria);
+    setNovoAppNome('');
+    setNovoAppIcone('🚗');
+    setShowAddApp(false);
   };
 
   const handleToggleReminder = async (checked: boolean) => {
@@ -401,6 +418,96 @@ export function Settings() {
                 Adicionar Custo Fixo
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Plataformas */}
+        <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 mb-4">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg text-slate-900 dark:text-white flex items-center gap-2">
+              <Smartphone className="w-5 h-5 text-emerald-400" />
+              Plataformas
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p className="text-xs text-slate-400 dark:text-slate-500">
+              Ative os apps que você usa para registrar o faturamento separado por plataforma.
+            </p>
+
+            {user?.plataformas?.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => togglePlataforma(p.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all duration-200 ${p.ativo
+                  ? 'border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/5'
+                  : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/30 opacity-60'
+                  }`}
+              >
+                <span className="text-lg">{p.icone}</span>
+                <span className={`font-medium text-sm flex-1 text-left ${p.ativo ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+                  {p.nome}
+                </span>
+                <div
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: p.cor === '#000000' ? '#6b7280' : p.cor }}
+                />
+                {p.ativo && <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
+              </button>
+            ))}
+
+            {showAddApp ? (
+              <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-700 mt-3">
+                <div className="flex flex-wrap gap-1">
+                  {ICONES_DISPONIVEIS.map((ic) => (
+                    <button
+                      key={ic}
+                      type="button"
+                      onClick={() => setNovoAppIcone(ic)}
+                      className={`w-8 h-8 rounded-lg text-sm flex items-center justify-center transition-all ${novoAppIcone === ic ? 'bg-emerald-100 dark:bg-emerald-500/20 ring-1 ring-emerald-500' : 'bg-slate-100 dark:bg-slate-800'
+                        }`}
+                    >
+                      {ic}
+                    </button>
+                  ))}
+                </div>
+                <Input
+                  value={novoAppNome}
+                  onChange={(e) => setNovoAppNome(e.target.value)}
+                  placeholder="Nome do app"
+                  className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAddApp(false)}
+                    className="flex-1 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 text-sm"
+                    size="sm"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleAddPlataforma}
+                    disabled={!novoAppNome.trim()}
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm"
+                    size="sm"
+                  >
+                    Adicionar
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => setShowAddApp(true)}
+                className="w-full border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white mt-2"
+                size="sm"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Adicionar App
+              </Button>
+            )}
           </CardContent>
         </Card>
 

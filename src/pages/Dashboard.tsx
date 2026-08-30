@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import {
   calcularResumoMensal,
+  calcularDistribuicaoPlataformas,
   formatarMoeda,
   getNomeMes
 } from '@/lib/calculations';
@@ -36,6 +37,11 @@ export function Dashboard() {
 
   const records = getRecordsByMonth(currentYear, currentMonth);
   const resumo = monthConfigAtual ? calcularResumoMensal(records, monthConfigAtual) : null;
+
+  // Distribuição por plataforma (hidden gracefully quando não há dados de ganhosPorApp)
+  const distribuicaoApps = user?.plataformas
+    ? calcularDistribuicaoPlataformas(records, user.plataformas)
+    : [];
 
   const handleChangeMonth = (delta: number) => {
     let newMonth = currentMonth + delta;
@@ -181,6 +187,34 @@ export function Dashboard() {
               <p className="text-center text-base font-bold text-slate-900 dark:text-white mt-1">
                 {resumo.percentualMeta.toFixed(1)}%
               </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Distribuição por App (some se não houver dados) */}
+        {distribuicaoApps.length > 0 && (
+          <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 flex-shrink-0">
+            <CardContent className="p-3">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2">Por Plataforma</p>
+              <div className="space-y-1.5">
+                {distribuicaoApps.map(app => (
+                  <div key={app.plataformaId} className="flex items-center gap-2">
+                    <span className="text-xs w-5 text-center">{app.icone}</span>
+                    <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          backgroundColor: app.cor === '#000000' ? '#6b7280' : app.cor,
+                          width: `${app.percentual}%`,
+                          opacity: 0.85,
+                        }}
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 w-8 text-right">{app.percentual.toFixed(0)}%</span>
+                    <span className="text-xs text-slate-900 dark:text-white font-medium w-16 text-right">{formatarMoeda(app.totalFaturamento)}</span>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         )}

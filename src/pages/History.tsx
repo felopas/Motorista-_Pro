@@ -8,7 +8,8 @@ import {
   formatarMoeda,
   getNomeMes,
   getDiaSemanaAbrev,
-  calcularResumoMensal
+  calcularResumoMensal,
+  calcularDistribuicaoPlataformas
 } from '@/lib/calculations';
 import {
   BarChart,
@@ -96,7 +97,7 @@ const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent
 };
 
 export function History() {
-  const { getMonthConfig, getRecordsByMonth, setCurrentView, setSelectedDate, deleteRecord } = useApp();
+  const { user, getMonthConfig, getRecordsByMonth, setCurrentView, setSelectedDate, deleteRecord } = useApp();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -173,6 +174,11 @@ export function History() {
       })
       .filter((d): d is { label: string; lucro: number } => d !== null);
   }, [selectedMonth, selectedYear, getMonthConfig, getRecordsByMonth]);
+
+  // Distribuição por plataforma (hidden gracefully quando não há dados de ganhosPorApp)
+  const distribuicaoApps = user?.plataformas
+    ? calcularDistribuicaoPlataformas(monthRecords, user.plataformas)
+    : [];
 
   const handlePrevMonth = () => {
     if (selectedMonth === 1) {
@@ -481,6 +487,34 @@ export function History() {
                   </CardContent>
                 </Card>
 
+                {/* Ranking por App (some se não houver dados) */}
+                {distribuicaoApps.length > 0 && (
+                  <Card className="bg-white dark:bg-slate-800/30 border-slate-200 dark:border-slate-700/50 backdrop-blur-sm overflow-hidden">
+                    <CardContent className="p-4">
+                      <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Ranking por App</h3>
+                      <div className="space-y-2.5">
+                        {distribuicaoApps.map((app, idx) => (
+                          <div key={app.plataformaId} className="flex items-center gap-3">
+                            <span className="text-xs text-slate-400 dark:text-slate-500 w-4">{idx + 1}º</span>
+                            <span className="text-base">{app.icone}</span>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-slate-900 dark:text-white font-medium">{app.nome}</span>
+                                <span className="text-sm text-emerald-600 dark:text-emerald-400 font-bold">{formatarMoeda(app.totalFaturamento)}</span>
+                              </div>
+                              <div className="flex gap-3 text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                                <span>{app.percentual.toFixed(0)}% do total</span>
+                                {app.totalCorridas > 0 && <span>{app.totalCorridas} corridas</span>}
+                                {app.mediaPorKm > 0 && <span>R${app.mediaPorKm.toFixed(2)}/km</span>}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Gráfico 4: Comparativo entre meses */}
                 {comparativoMeses.length > 0 && (
                   <Card className="bg-white dark:bg-slate-800/30 border-slate-200 dark:border-slate-700/50 backdrop-blur-sm overflow-hidden">
@@ -564,6 +598,22 @@ export function History() {
                                     {record.horasTrabalhadas}h • {record.kmRodado}km
                                     {record.numCorridas ? ` • ${record.numCorridas} corridas` : ''}
                                   </p>
+                                  {record.ganhosPorApp && record.ganhosPorApp.length > 0 && (
+                                    <div className="flex gap-1 mt-1 flex-wrap">
+                                      {record.ganhosPorApp.map(g => {
+                                        const plat = user?.plataformas?.find(p => p.id === g.plataformaId);
+                                        if (!plat) return null;
+                                        return (
+                                          <span
+                                            key={g.plataformaId}
+                                            className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400"
+                                          >
+                                            {plat.icone} {formatarMoeda(g.faturamento)}
+                                          </span>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
                                 </div>
                                 <div className="text-right">
                                   <p className="text-emerald-400 font-bold text-sm">
@@ -573,7 +623,7 @@ export function History() {
                                     Líq. {formatarMoeda(record.lucroLiquido)}
                                   </p>
                                   {monthConfig && monthConfig.custoFixoDiario > 0 && (
-                                    <p className="text-[9px] text-slate-600">
+                                    <p className="text-[9px] text-slate-400 dark:text-slate-600">
                                       c/ fixos: {formatarMoeda(record.lucroLiquido - monthConfig.custoFixoDiario)}
                                     </p>
                                   )}
@@ -642,10 +692,10 @@ export function History() {
           <Card className="bg-white dark:bg-slate-800/30 border-slate-200 dark:border-slate-700/50">
             <CardContent className="p-10 text-center">
               <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Calendar className="w-8 h-8 text-slate-600" />
+                <Calendar className="w-8 h-8 text-slate-400 dark:text-slate-600" />
               </div>
               <p className="text-slate-500 dark:text-slate-400 font-medium">Nenhum registro neste mês</p>
-              <p className="text-slate-600 text-sm mt-1">Registre seus dias para ver a análise aqui</p>
+              <p className="text-slate-400 dark:text-slate-600 text-sm mt-1">Registre seus dias para ver a análise aqui</p>
             </CardContent>
           </Card>
         )}

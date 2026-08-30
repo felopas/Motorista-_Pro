@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import type { UserProfile, DailyRecord, MonthConfig, ViewType } from '@/types';
+import type { UserProfile, DailyRecord, MonthConfig, ViewType, AppPlataforma } from '@/types';
 import * as storage from '@/lib/storage';
-import { calcularMetaDiaria, calcularCustoFixoDiario, getDiasUteis } from '@/lib/calculations';
+import { calcularMetaDiaria, calcularCustoFixoDiario, getDiasUteis, gerarId } from '@/lib/calculations';
 import { sincronizarLembretesDiarios, registrarListenerNotificacao, HORARIO_PADRAO } from '@/lib/notifications';
 
 interface AppContextType {
@@ -45,6 +45,10 @@ interface AppContextType {
   setReminderEnabled: (enabled: boolean) => void;
   reminderTime: string;
   setReminderTime: (time: string) => void;
+
+  // Plataformas
+  addPlataforma: (nome: string, icone: string, cor: string) => void;
+  togglePlataforma: (id: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -198,6 +202,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  // Plataformas
+  const addPlataforma = (nome: string, icone: string, cor: string) => {
+    if (!user) return;
+    const nova: AppPlataforma = {
+      id: gerarId(),
+      nome,
+      cor,
+      icone,
+      ativo: true,
+    };
+    const updatedUser = { ...user, plataformas: [...(user.plataformas || []), nova] };
+    saveUser(updatedUser);
+  };
+
+  const togglePlataforma = (id: string) => {
+    if (!user) return;
+    const updatedPlataformas = (user.plataformas || []).map(p =>
+      p.id === id ? { ...p, ativo: !p.ativo } : p
+    );
+    const updatedUser = { ...user, plataformas: updatedPlataformas };
+    saveUser(updatedUser);
+  };
+
   const resetAllData = () => {
     storage.clearAllData();
     setUser(null);
@@ -234,6 +261,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setReminderEnabled,
     reminderTime,
     setReminderTime,
+    addPlataforma,
+    togglePlataforma,
   };
 
   return (
