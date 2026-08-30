@@ -21,7 +21,7 @@ export function BottomNav() {
           return (
             <button
               key={item.id}
-              onClick={() => setCurrentView(item.id as any)}
+              onClick={() => setCurrentView(item.id)}
               className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
                 isActive 
                   ? 'text-emerald-400' 
