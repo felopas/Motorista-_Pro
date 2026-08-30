@@ -11,7 +11,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, User, Car, Fuel, DollarSign, Download, Upload, Trash2, AlertTriangle, Check, Wrench, Plus } from 'lucide-react';
+import { ArrowLeft, User, Car, Fuel, DollarSign, Download, Upload, Trash2, AlertTriangle, Check, Wrench, Plus, Sun, Moon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useApp } from '@/contexts/AppContext';
 import { exportData, importData } from '@/lib/storage';
 import { gerarId, formatarMoeda } from '@/lib/calculations';
@@ -27,6 +28,7 @@ const categoriaLabels: Record<FixedCost['categoria'], string> = {
 
 export function Settings() {
   const { user, saveUser, resetAllData, setCurrentView } = useApp();
+  const { theme, setTheme } = useTheme();
   const [showSuccess, setShowSuccess] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [nome, setNome] = useState(user?.nome || '');
@@ -138,34 +140,34 @@ export function Settings() {
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4">
         <div className="text-center">
           <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <Check className="w-10 h-10 text-emerald-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Salvo!</h2>
-          <p className="text-slate-400">Suas configurações foram atualizadas</p>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Salvo!</h2>
+          <p className="text-slate-500 dark:text-slate-400">Suas configurações foram atualizadas</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 pb-24">
       {/* Header */}
-      <div className="bg-slate-900/80 backdrop-blur-lg sticky top-0 z-40 pt-safe">
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg sticky top-0 z-40 pt-safe">
         <div className="max-w-md mx-auto px-4 py-3">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setCurrentView('dashboard')}
-              className="text-slate-400"
+              className="text-slate-500 dark:text-slate-400"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold text-white">Configurações</h1>
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white">Configurações</h1>
             </div>
           </div>
         </div>
@@ -173,34 +175,63 @@ export function Settings() {
 
       <div className="max-w-md mx-auto px-4 pt-4">
         {/* Perfil */}
-        <Card className="bg-slate-800/50 border-slate-700 mb-4">
+        <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 mb-4">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-white flex items-center gap-2">
+            <CardTitle className="text-lg text-slate-900 dark:text-white flex items-center gap-2">
               <User className="w-5 h-5 text-emerald-400" />
               Perfil
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-slate-300">Nome</Label>
+              <Label className="text-slate-600 dark:text-slate-300">Aparência</Label>
+              <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-700/50 rounded-lg p-1">
+                <button
+                  type="button"
+                  onClick={() => setTheme('light')}
+                  className={`flex-1 flex items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-colors ${
+                    theme === 'light'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  }`}
+                >
+                  <Sun className="w-4 h-4" />
+                  Claro
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTheme('dark')}
+                  className={`flex-1 flex items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-colors ${
+                    theme === 'dark'
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  }`}
+                >
+                  <Moon className="w-4 h-4" />
+                  Escuro
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-slate-600 dark:text-slate-300">Nome</Label>
               <Input
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                className="bg-slate-900 border-slate-600 text-white"
+                className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300 flex items-center gap-2">
+              <Label className="text-slate-600 dark:text-slate-300 flex items-center gap-2">
                 <Car className="w-4 h-4" /> Carro
               </Label>
               <Input
                 value={carro}
                 onChange={(e) => setCarro(e.target.value)}
-                className="bg-slate-900 border-slate-600 text-white"
+                className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300 flex items-center gap-2">
+              <Label className="text-slate-600 dark:text-slate-300 flex items-center gap-2">
                 <Fuel className="w-4 h-4" /> Média do Carro (km/l)
               </Label>
               <Input
@@ -208,14 +239,14 @@ export function Settings() {
                 step="0.1"
                 value={mediaGasolina}
                 onChange={(e) => setMediaGasolina(e.target.value)}
-                className="bg-slate-900 border-slate-600 text-white"
+                className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
               />
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-400 dark:text-slate-500">
                 Esta média é usada apenas para novos registros. Dados salvos não serão alterados.
               </p>
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300 flex items-center gap-2">
+              <Label className="text-slate-600 dark:text-slate-300 flex items-center gap-2">
                 <DollarSign className="w-4 h-4" /> Preço do Combustível (R$/litro)
               </Label>
               <Input
@@ -223,9 +254,9 @@ export function Settings() {
                 step="0.01"
                 value={precoCombustivel}
                 onChange={(e) => setPrecoCombustivel(e.target.value)}
-                className="bg-slate-900 border-slate-600 text-white"
+                className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
               />
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-400 dark:text-slate-500">
                 Usado para estimar o custo de combustível em novos registros.
               </p>
             </div>
@@ -233,15 +264,15 @@ export function Settings() {
         </Card>
 
         {/* Custos Fixos */}
-        <Card className="bg-slate-800/50 border-slate-700 mb-4">
+        <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 mb-4">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-white flex items-center gap-2">
+            <CardTitle className="text-lg text-slate-900 dark:text-white flex items-center gap-2">
               <Wrench className="w-5 h-5 text-emerald-400" />
               Custos Fixos
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-400 dark:text-slate-500">
               Cadastre seus custos mensais fixos (seguro, IPVA, financiamento, manutenção) para
               ratear no seu lucro diário.
             </p>
@@ -251,13 +282,13 @@ export function Settings() {
                 {custosFixos.map((custo) => (
                   <div
                     key={custo.id}
-                    className="flex items-center gap-3 bg-slate-900 border border-slate-600 rounded-lg p-3"
+                    className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg p-3"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm truncate ${custo.ativo ? 'text-white' : 'text-slate-500 line-through'}`}>
+                      <p className={`text-sm truncate ${custo.ativo ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500 line-through'}`}>
                         {custo.descricao}
                       </p>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         {categoriaLabels[custo.categoria]} · {formatarMoeda(custo.valorMensal)}/mês
                       </p>
                     </div>
@@ -279,45 +310,45 @@ export function Settings() {
               </div>
             )}
 
-            <div className="flex items-center justify-between border-t border-slate-700 pt-3">
-              <span className="text-sm text-slate-400">Total mensal (ativos)</span>
+            <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-700 pt-3">
+              <span className="text-sm text-slate-500 dark:text-slate-400">Total mensal (ativos)</span>
               <span className="text-sm font-semibold text-emerald-400">
                 {formatarMoeda(totalCustosAtivos)}
               </span>
             </div>
 
-            <div className="space-y-3 border-t border-slate-700 pt-4">
+            <div className="space-y-3 border-t border-slate-200 dark:border-slate-700 pt-4">
               <div className="space-y-2">
-                <Label className="text-slate-300">Descrição</Label>
+                <Label className="text-slate-600 dark:text-slate-300">Descrição</Label>
                 <Input
                   value={novoDescricao}
                   onChange={(e) => setNovoDescricao(e.target.value)}
                   placeholder="Ex: Seguro do carro"
-                  className="bg-slate-900 border-slate-600 text-white"
+                  className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Valor Mensal (R$)</Label>
+                  <Label className="text-slate-600 dark:text-slate-300">Valor Mensal (R$)</Label>
                   <Input
                     type="number"
                     step="0.01"
                     value={novoValor}
                     onChange={(e) => setNovoValor(e.target.value)}
                     placeholder="0,00"
-                    className="bg-slate-900 border-slate-600 text-white"
+                    className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Categoria</Label>
+                  <Label className="text-slate-600 dark:text-slate-300">Categoria</Label>
                   <Select
                     value={novoCategoria}
                     onValueChange={(v) => setNovoCategoria(v as FixedCost['categoria'])}
                   >
-                    <SelectTrigger className="bg-slate-900 border-slate-600 text-white w-full">
+                    <SelectTrigger className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white w-full">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                    <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white">
                       <SelectItem value="seguro">Seguro</SelectItem>
                       <SelectItem value="ipva">IPVA</SelectItem>
                       <SelectItem value="financiamento">Financiamento</SelectItem>
@@ -341,15 +372,15 @@ export function Settings() {
         </Card>
 
         {/* Ações */}
-        <Card className="bg-slate-800/50 border-slate-700 mb-4">
+        <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 mb-4">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-white">Dados</CardTitle>
+            <CardTitle className="text-lg text-slate-900 dark:text-white">Dados</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Button
               variant="outline"
               onClick={handleExport}
-              className="w-full border-slate-600 text-slate-300 hover:bg-slate-700 flex items-center gap-2"
+              className="w-full border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2"
             >
               <Download className="w-4 h-4" />
               Exportar Backup
@@ -364,7 +395,7 @@ export function Settings() {
             <Button
               variant="outline"
               onClick={handleImportClick}
-              className="w-full border-slate-600 text-slate-300 hover:bg-slate-700 flex items-center gap-2"
+              className="w-full border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2"
             >
               <Upload className="w-4 h-4" />
               Importar Backup
@@ -402,7 +433,7 @@ export function Settings() {
                   <Button
                     variant="outline"
                     onClick={() => setShowDeleteConfirm(false)}
-                    className="flex-1 border-slate-600 text-slate-300"
+                    className="flex-1 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300"
                   >
                     Cancelar
                   </Button>
