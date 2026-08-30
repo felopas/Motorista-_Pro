@@ -42,7 +42,7 @@ export function MonthConfigPage() {
         }
       }
       setDiasFolga(domingos);
-      setDiasPlanejados(diasUteis - domingos.length);
+      setDiasPlanejados(diasUteis);
       setMetaMensal(metaPadrao);
     }
     setSalvarComoPadrao(false);

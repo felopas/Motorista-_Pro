@@ -3,10 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar } from '@/components/Calendar';
 import { useApp } from '@/contexts/AppContext';
+import type { MonthConfig } from '@/types';
 import {
   Plus,
   Settings,
-  AlertTriangle,
   ChevronRight,
 } from 'lucide-react';
 import {
@@ -18,8 +18,7 @@ import {
 export function Dashboard() {
   const {
     user,
-    getMonthConfig,
-    hasMonthConfig,
+    ensureMonthConfig,
     getRecordsByMonth,
     setCurrentView,
     selectedDate,
@@ -28,17 +27,15 @@ export function Dashboard() {
 
   const [currentMonth, setCurrentMonth] = useState(selectedDate.getMonth() + 1);
   const [currentYear, setCurrentYear] = useState(selectedDate.getFullYear());
-  const [monthConfigAtual, setMonthConfigAtual] = useState<ReturnType<typeof getMonthConfig>>(null);
+  const [monthConfigAtual, setMonthConfigAtual] = useState<MonthConfig | null>(null);
 
   useEffect(() => {
-    const config = getMonthConfig(currentYear, currentMonth);
+    const config = ensureMonthConfig(currentYear, currentMonth);
     setMonthConfigAtual(config);
-  }, [currentYear, currentMonth, getMonthConfig]);
+  }, [currentYear, currentMonth, ensureMonthConfig]);
 
   const records = getRecordsByMonth(currentYear, currentMonth);
   const resumo = monthConfigAtual ? calcularResumoMensal(records, monthConfigAtual) : null;
-
-  const needsConfig = !hasMonthConfig(currentYear, currentMonth);
 
   const handleChangeMonth = (delta: number) => {
     let newMonth = currentMonth + delta;
@@ -98,27 +95,14 @@ export function Dashboard() {
 
       {/* Conteúdo principal - flex-1 para ocupar espaço restante */}
       <div className="flex-1 max-w-md mx-auto px-3 pt-2 pb-2 flex flex-col gap-2 overflow-hidden w-full">
-        {/* Alerta de Configuração */}
-        {needsConfig && (
-          <Card className="bg-amber-500/10 border-amber-500/30 flex-shrink-0">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                <p className="text-sm text-amber-400 font-medium flex-1">
-                  Configure {getNomeMes(currentMonth)}
-                </p>
-                <Button
-                  onClick={handleConfigurarMes}
-                  size="sm"
-                  className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-medium h-8 text-sm px-3"
-                >
-                  Configurar
-                  <ChevronRight className="w-3 h-3 ml-0.5" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Ajustar mês (meta/folgas) - sempre disponível, sem bloquear o uso */}
+        <button
+          onClick={handleConfigurarMes}
+          className="flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 px-1 flex-shrink-0"
+        >
+          <span>Ajustar meta e folgas de {getNomeMes(currentMonth)}</span>
+          <ChevronRight className="w-3 h-3" />
+        </button>
 
         {/* Info: Dias e Médias */}
         {resumo && monthConfigAtual && (() => {

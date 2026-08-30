@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { UserProfile, DailyRecord, MonthConfig, ViewType } from '@/types';
 import * as storage from '@/lib/storage';
-import { calcularMetaDiaria, calcularCustoFixoDiario } from '@/lib/calculations';
+import { calcularMetaDiaria, calcularCustoFixoDiario, getDiasUteis } from '@/lib/calculations';
 import { sincronizarLembretesDiarios } from '@/lib/notifications';
 
 interface AppContextType {
@@ -22,8 +22,9 @@ interface AppContextType {
   monthConfig: MonthConfig | null;
   getMonthConfig: (ano: number, mes: number) => MonthConfig | null;
   setMonthConfig: (config: MonthConfig | null) => void;
-  saveMonthConfig: (config: MonthConfig) => void;
+  saveMonthConfig: (config: MonthConfig) => MonthConfig;
   hasMonthConfig: (ano: number, mes: number) => boolean;
+  ensureMonthConfig: (ano: number, mes: number) => MonthConfig;
   
   // View
   currentView: ViewType;
@@ -136,7 +137,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return !!monthConfigs[key];
   };
 
-  const saveMonthConfig = (config: MonthConfig) => {
+  const saveMonthConfig = (config: MonthConfig): MonthConfig => {
     const configWithCalculations = {
       ...config,
       metaDiaria: calcularMetaDiaria(config.metaMensal, config.diasPlanejados),
@@ -145,13 +146,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
         config.diasPlanejados
       ),
     };
-    
+
     const key = `${config.ano}-${String(config.mes).padStart(2, '0')}`;
     const updatedConfigs = { ...monthConfigs, [key]: configWithCalculations };
-    
+
     setMonthConfigs(updatedConfigs);
     setCurrentMonthConfig(configWithCalculations);
     storage.saveMonthConfig(configWithCalculations);
+    return configWithCalculations;
+  };
+
+  // Cria (e persiste) uma configuração padrão pro mês na primeira vez que ele
+  // é visitado, usando a meta padrão do usuário e domingos como folga - assim
+  // o usuário não precisa configurar manualmente todo mês antes de usar o app.
+  const ensureMonthConfig = (ano: number, mes: number): MonthConfig => {
+    const existente = getMonthConfig(ano, mes);
+    if (existente) return existente;
+
+    const diasNoMes = new Date(ano, mes, 0).getDate();
+    const domingos: string[] = [];
+    for (let dia = 1; dia <= diasNoMes; dia++) {
+      if (new Date(ano, mes - 1, dia).getDay() === 0) {
+        domingos.push(`${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`);
+      }
+    }
+
+    return saveMonthConfig({
+      ano,
+      mes,
+      diasPlanejados: getDiasUteis(ano, mes),
+      diasFolga: domingos,
+      metaMensal: user?.metaMensalPadrao || 11000,
+      metaDiaria: 0,
+      custoFixoDiario: 0,
+    });
   };
 
   const resetAllData = () => {
@@ -179,6 +207,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setMonthConfig: setCurrentMonthConfig,
     saveMonthConfig,
     hasMonthConfig,
+    ensureMonthConfig,
     currentView,
     setCurrentView,
     selectedDate,
