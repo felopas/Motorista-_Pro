@@ -44,7 +44,7 @@ export function Calendar({ ano, mes, onChangeMonth, onSelectDate }: CalendarProp
   }
 
   const getDayColor = (item: DiaCalendario) => {
-    if (!item) return 'bg-slate-700/50 text-slate-500';
+    if (!item) return 'bg-slate-100 dark:bg-slate-700/50 text-slate-400 dark:text-slate-500';
     // Se tem registro, sempre mostrar cor baseada no bruto (mesmo em dia de folga)
     if (item.record) {
       const bruto = item.record.faturamentoBruto;
@@ -54,8 +54,8 @@ export function Calendar({ ano, mes, onChangeMonth, onSelectDate }: CalendarProp
       if (bruto >= metaRef * 0.8) return 'bg-amber-500/30 text-amber-400 border-amber-500/50';
       return 'bg-red-500/30 text-red-400 border-red-500/50';
     }
-    if (item.isFolga) return 'bg-slate-700/50 text-slate-500';
-    return 'bg-slate-800 text-slate-400 hover:bg-slate-700';
+    if (item.isFolga) return 'bg-slate-100 dark:bg-slate-700/50 text-slate-400 dark:text-slate-500';
+    return 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700';
   };
 
   const isHoje = (dia: number) => {
@@ -66,21 +66,21 @@ export function Calendar({ ano, mes, onChangeMonth, onSelectDate }: CalendarProp
   };
 
   return (
-    <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-3">
+    <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
       {/* Header do calendário */}
       <div className="flex items-center justify-between mb-2">
         <button
           onClick={() => onChangeMonth(-1)}
-          className="p-1.5 rounded-lg bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors"
+          className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <h3 className="text-lg font-semibold text-white">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
           {getNomeMes(mes)} {ano}
         </h3>
         <button
           onClick={() => onChangeMonth(1)}
-          className="p-1.5 rounded-lg bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors"
+          className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -89,7 +89,7 @@ export function Calendar({ ano, mes, onChangeMonth, onSelectDate }: CalendarProp
       {/* Dias da semana */}
       <div className="grid grid-cols-7 gap-0.5 mb-1">
         {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(dia => (
-          <div key={dia} className="text-center text-xs text-slate-500 font-medium py-0.5">
+          <div key={dia} className="text-center text-xs text-slate-400 dark:text-slate-500 font-medium py-0.5">
             {dia}
           </div>
         ))}
@@ -123,19 +123,19 @@ export function Calendar({ ano, mes, onChangeMonth, onSelectDate }: CalendarProp
       <div className="flex flex-wrap gap-2 mt-2 text-xs">
         <div className="flex items-center gap-1">
           <div className="w-2.5 h-2.5 rounded bg-emerald-500/30 border border-emerald-500/50" />
-          <span className="text-slate-400">Bom</span>
+          <span className="text-slate-500 dark:text-slate-400">Bom</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-2.5 h-2.5 rounded bg-amber-500/30 border border-amber-500/50" />
-          <span className="text-slate-400">Regular</span>
+          <span className="text-slate-500 dark:text-slate-400">Regular</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-2.5 h-2.5 rounded bg-red-500/30 border border-red-500/50" />
-          <span className="text-slate-400">Ruim</span>
+          <span className="text-slate-500 dark:text-slate-400">Ruim</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded bg-slate-700/50" />
-          <span className="text-slate-400">Folga</span>
+          <div className="w-2.5 h-2.5 rounded bg-slate-100 dark:bg-slate-700/50" />
+          <span className="text-slate-500 dark:text-slate-400">Folga</span>
         </div>
       </div>
     </div>

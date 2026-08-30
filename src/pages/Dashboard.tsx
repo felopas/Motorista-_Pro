@@ -73,14 +73,14 @@ export function Dashboard() {
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col overflow-hidden">
+    <div className="h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex flex-col overflow-hidden">
       {/* Header compacto */}
-      <div className="bg-slate-900/80 backdrop-blur-lg z-40 pt-safe">
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg z-40 pt-safe">
         <div className="max-w-md mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-white">Motorista Pro</h1>
-              <p className="text-xs text-slate-400">
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white">Motorista Pro</h1>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 {user ? `Olá, ${user.nome.split(' ')[0]}` : 'Bem-vindo'}
               </p>
             </div>
@@ -88,7 +88,7 @@ export function Dashboard() {
               variant="ghost"
               size="icon"
               onClick={() => setCurrentView('settings')}
-              className="text-slate-400 hover:text-white h-9 w-9"
+              className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white h-9 w-9"
             >
               <Settings className="w-5 h-5" />
             </Button>
@@ -141,7 +141,7 @@ export function Dashboard() {
               ? 'text-amber-400'
               : ganhoHoje > 0
                 ? 'text-red-400'
-                : 'text-slate-500';
+                : 'text-slate-400 dark:text-slate-500';
 
           // Cor da meta dinâmica (verde se diminuiu, vermelho se aumentou)
           const corMeta = metaDiaDinamica <= metaRef
@@ -151,25 +151,25 @@ export function Dashboard() {
               : 'text-red-400';
 
           return (
-            <Card className="bg-slate-800/50 border-slate-700 flex-shrink-0">
+            <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 flex-shrink-0">
               <CardContent className="p-3">
                 <div className="flex justify-between text-sm">
                   <div>
-                    <p className="text-slate-400 text-[11px]">Dias Restantes</p>
-                    <p className="text-white font-semibold text-base">{diasRestantes}</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-[11px]">Dias Restantes</p>
+                    <p className="text-slate-900 dark:text-white font-semibold text-base">{diasRestantes}</p>
                   </div>
                   <div>
-                    <p className="text-slate-400 text-[11px]">Trabalhados</p>
-                    <p className="text-white font-semibold text-base">{resumo.diasTrabalhados}</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-[11px]">Trabalhados</p>
+                    <p className="text-slate-900 dark:text-white font-semibold text-base">{resumo.diasTrabalhados}</p>
                   </div>
                   <div>
-                    <p className="text-slate-400 text-[11px]">Ganho Hoje</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-[11px]">Ganho Hoje</p>
                     <p className={`${corGanho} font-semibold text-base`}>
                       {formatarMoeda(ganhoHoje)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-slate-400 text-[11px]">Meta/Dia</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-[11px]">Meta/Dia</p>
                     <p className={`${corMeta} font-semibold text-base`}>{formatarMoeda(metaDiaDinamica)}</p>
                   </div>
                 </div>
@@ -180,21 +180,21 @@ export function Dashboard() {
 
         {/* Progresso com valores */}
         {resumo && monthConfigAtual && (
-          <Card className="bg-slate-800/50 border-slate-700 flex-shrink-0">
+          <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 flex-shrink-0">
             <CardContent className="p-3">
               <div className="flex justify-between items-center mb-1">
-                <span className="text-[11px] text-slate-400">Progresso da Meta</span>
-                <span className="text-sm font-bold text-white">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">Progresso da Meta</span>
+                <span className="text-sm font-bold text-slate-900 dark:text-white">
                   {formatarMoeda(resumo.totalBruto)} / {formatarMoeda(monthConfigAtual.metaMensal)}
                 </span>
               </div>
-              <div className="w-full h-2.5 bg-slate-700 rounded-full overflow-hidden">
+              <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-blue-500 to-emerald-500"
                   style={{ width: `${Math.min(resumo.percentualMeta, 100)}%` }}
                 />
               </div>
-              <p className="text-center text-base font-bold text-white mt-1">
+              <p className="text-center text-base font-bold text-slate-900 dark:text-white mt-1">
                 {resumo.percentualMeta.toFixed(1)}%
               </p>
             </CardContent>

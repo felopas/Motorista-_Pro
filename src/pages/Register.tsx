@@ -183,13 +183,13 @@ export function Register({ date }: RegisterProps = {}) {
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4">
         <div className="text-center">
           <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
             <Check className="w-10 h-10 text-emerald-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">{isEditMode ? 'Atualizado!' : 'Registrado!'}</h2>
-          <p className="text-slate-400">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{isEditMode ? 'Atualizado!' : 'Registrado!'}</h2>
+          <p className="text-slate-500 dark:text-slate-400">
             {isEditMode ? 'Seu registro foi atualizado com sucesso' : 'Seu dia foi salvo com sucesso'}
           </p>
         </div>
@@ -198,22 +198,22 @@ export function Register({ date }: RegisterProps = {}) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex flex-col">
       {/* Header fixo */}
-      <div className="bg-slate-900/80 backdrop-blur-lg sticky top-0 z-40 pt-safe">
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg sticky top-0 z-40 pt-safe">
         <div className="max-w-md mx-auto px-4 py-3">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setCurrentView('dashboard')}
-              className="text-slate-400"
+              className="text-slate-500 dark:text-slate-400"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex-1">
-              <h1 className="text-lg font-bold text-white">{isEditMode ? 'Editar Turno' : 'Registrar Turno'}</h1>
-              <p className="text-xs text-slate-400">{formatarData(dataRegistro)} • {getDiaSemanaAbrev(dataRegistro)}</p>
+              <h1 className="text-lg font-bold text-slate-900 dark:text-white">{isEditMode ? 'Editar Turno' : 'Registrar Turno'}</h1>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{formatarData(dataRegistro)} • {getDiaSemanaAbrev(dataRegistro)}</p>
             </div>
             {isEditMode && (
               <Button
@@ -246,7 +246,7 @@ export function Register({ date }: RegisterProps = {}) {
                   <Button
                     variant="outline"
                     onClick={() => setShowDeleteConfirm(false)}
-                    className="flex-1 border-slate-600 text-slate-300"
+                    className="flex-1 border-slate-300 dark:border-slate-600 text-slate-300"
                   >
                     Cancelar
                   </Button>
@@ -264,11 +264,11 @@ export function Register({ date }: RegisterProps = {}) {
 
           {/* Progress Bar */}
           <div className="mb-6">
-            <div className="flex justify-between text-xs text-slate-500 mb-2">
+            <div className="flex justify-between text-xs text-slate-400 dark:text-slate-500 mb-2">
               <span>Passo {step} de {totalSteps}</span>
               <span>{Math.round(progress)}%</span>
             </div>
-            <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+            <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
               <div
                 className="h-full bg-emerald-500 transition-all duration-300"
                 style={{ width: `${progress}%` }}
@@ -287,15 +287,15 @@ export function Register({ date }: RegisterProps = {}) {
               <CardContent className="p-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-slate-400">Faturamento Bruto</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Faturamento Bruto</p>
                     <p className={`text-xl font-bold ${bruto >= metaDiaria ? 'text-emerald-400' : bruto >= metaDiaria * 0.8 ? 'text-amber-400' : 'text-red-400'
                       }`}>
                       {formatarMoeda(bruto)}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-slate-400">Meta Bruta</p>
-                    <p className="font-semibold text-white">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Meta Bruta</p>
+                    <p className="font-semibold text-slate-900 dark:text-white">
                       {formatarMoeda(metaDiaria)}
                     </p>
                   </div>
@@ -313,7 +313,7 @@ export function Register({ date }: RegisterProps = {}) {
                   onClick={() => setEhFolga(!ehFolga)}
                   className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${ehFolga
                     ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
-                    : 'bg-slate-800/50 border-slate-600 text-slate-400 hover:text-slate-300'
+                    : 'bg-white dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                     }`}
                 >
                   <Moon className="w-4 h-4" />
@@ -326,8 +326,8 @@ export function Register({ date }: RegisterProps = {}) {
                   <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Moon className="w-8 h-8 text-emerald-400" />
                   </div>
-                  <h2 className="text-xl font-bold text-white mb-2">Dia de Folga</h2>
-                  <p className="text-slate-400 text-sm">Nenhum valor será registrado para este dia</p>
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Dia de Folga</h2>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm">Nenhum valor será registrado para este dia</p>
                 </div>
               ) : (
                 <>
@@ -335,29 +335,29 @@ export function Register({ date }: RegisterProps = {}) {
                     <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                       <DollarSign className="w-8 h-8 text-emerald-400" />
                     </div>
-                    <h2 className="text-xl font-bold text-white mb-2">Quanto você faturou?</h2>
-                    <p className="text-slate-400 text-sm">Informe o valor total do seu faturamento bruto</p>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Quanto você faturou?</h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">Informe o valor total do seu faturamento bruto</p>
                   </div>
 
                   <div className="space-y-2">
                     <Label className="text-slate-300 text-lg">Faturamento Bruto</Label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl text-slate-500">R$</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl text-slate-400 dark:text-slate-500">R$</span>
                       <Input
                         type="number"
                         value={faturamentoBruto}
                         onChange={(e) => setFaturamentoBruto(e.target.value)}
                         placeholder="0,00"
-                        className="pl-14 pr-4 py-6 text-3xl font-bold bg-slate-900 border-slate-600 text-white text-center"
+                        className="pl-14 pr-4 py-6 text-3xl font-bold bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white text-center"
                         autoFocus
                       />
                     </div>
                   </div>
 
                   {bruto > 0 && (
-                    <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-                      <p className="text-sm text-slate-400 mb-1">Meta Dinâmica do Dia</p>
-                      <p className="text-lg font-semibold text-white">{formatarMoeda(metaDiaDinamica)}</p>
+                    <div className="bg-white dark:bg-slate-800/50 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Meta Dinâmica do Dia</p>
+                      <p className="text-lg font-semibold text-slate-900 dark:text-white">{formatarMoeda(metaDiaDinamica)}</p>
                       {bruto < metaDiaria && (
                         <p className="text-xs text-amber-400 mt-1">
                           Faltam {formatarMoeda(metaDiaria - bruto)} para bater a meta
@@ -375,7 +375,7 @@ export function Register({ date }: RegisterProps = {}) {
             ehFolga ? (
               <div className="text-center py-12">
                 <Moon className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-                <p className="text-slate-400">Dia de folga — sem dados de jornada para preencher</p>
+                <p className="text-slate-500 dark:text-slate-400">Dia de folga — sem dados de jornada para preencher</p>
               </div>
             ) : (
               <div className="space-y-6">
@@ -383,8 +383,8 @@ export function Register({ date }: RegisterProps = {}) {
                   <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Gauge className="w-8 h-8 text-blue-400" />
                   </div>
-                  <h2 className="text-xl font-bold text-white mb-2">Dados da Jornada</h2>
-                  <p className="text-slate-400 text-sm">Quanto você trabalhou hoje?</p>
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Dados da Jornada</h2>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm">Quanto você trabalhou hoje?</p>
                 </div>
 
                 <div className="space-y-4">
@@ -397,7 +397,7 @@ export function Register({ date }: RegisterProps = {}) {
                       value={kmRodado}
                       onChange={(e) => setKmRodado(e.target.value)}
                       placeholder="Ex: 210"
-                      className="bg-slate-900 border-slate-600 text-white py-5"
+                      className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white py-5"
                       autoFocus
                     />
                   </div>
@@ -412,7 +412,7 @@ export function Register({ date }: RegisterProps = {}) {
                       value={horasTrabalhadas}
                       onChange={(e) => setHorasTrabalhadas(e.target.value)}
                       placeholder="Ex: 8"
-                      className="bg-slate-900 border-slate-600 text-white py-5"
+                      className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white py-5"
                     />
                   </div>
 
@@ -425,7 +425,7 @@ export function Register({ date }: RegisterProps = {}) {
                       value={numCorridas}
                       onChange={(e) => setNumCorridas(e.target.value)}
                       placeholder="Ex: 15"
-                      className="bg-slate-900 border-slate-600 text-white py-5"
+                      className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white py-5"
                     />
                   </div>
 
@@ -438,7 +438,7 @@ export function Register({ date }: RegisterProps = {}) {
                       value={custoAlimentacao}
                       onChange={(e) => setCustoAlimentacao(e.target.value)}
                       placeholder="R$ 0,00"
-                      className="bg-slate-900 border-slate-600 text-white py-5"
+                      className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white py-5"
                     />
                   </div>
 
@@ -451,24 +451,24 @@ export function Register({ date }: RegisterProps = {}) {
                       value={custoOutros}
                       onChange={(e) => setCustoOutros(e.target.value)}
                       placeholder="R$ 0,00"
-                      className="bg-slate-900 border-slate-600 text-white py-5"
+                      className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white py-5"
                     />
                   </div>
                 </div>
 
                 {km > 0 && horas > 0 && (
-                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                  <div className="bg-white dark:bg-slate-800/50 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Média por corrida:</span>
-                      <span className="text-white">{numCorridas ? formatarMoeda(bruto / Number(numCorridas)) : '-'}</span>
+                      <span className="text-slate-500 dark:text-slate-400">Média por corrida:</span>
+                      <span className="text-slate-900 dark:text-white">{numCorridas ? formatarMoeda(bruto / Number(numCorridas)) : '-'}</span>
                     </div>
                     <div className="flex justify-between text-sm mt-1">
-                      <span className="text-slate-400">KM por hora:</span>
-                      <span className="text-white">{(km / horas).toFixed(1)} km/h</span>
+                      <span className="text-slate-500 dark:text-slate-400">KM por hora:</span>
+                      <span className="text-slate-900 dark:text-white">{(km / horas).toFixed(1)} km/h</span>
                     </div>
                     {user && (
                       <div className="flex justify-between text-sm mt-1">
-                        <span className="text-slate-400">Custo combustível (est.):</span>
+                        <span className="text-slate-500 dark:text-slate-400">Custo combustível (est.):</span>
                         <span className="text-amber-400">{formatarMoeda(custoCombustivel)}</span>
                       </div>
                     )}
@@ -485,47 +485,47 @@ export function Register({ date }: RegisterProps = {}) {
                 <div className="w-14 h-14 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
                   {ehFolga ? <Moon className="w-7 h-7 text-emerald-400" /> : <Check className="w-7 h-7 text-emerald-400" />}
                 </div>
-                <h2 className="text-xl font-bold text-white mb-1">{ehFolga ? 'Confirmar Folga' : 'Resumo do Dia'}</h2>
-                <p className="text-slate-400 text-sm">Confira antes de salvar</p>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{ehFolga ? 'Confirmar Folga' : 'Resumo do Dia'}</h2>
+                <p className="text-slate-500 dark:text-slate-400 text-sm">Confira antes de salvar</p>
               </div>
 
               {ehFolga ? (
-                <Card className="bg-slate-800/50 border-slate-700">
+                <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
                   <CardContent className="p-4 text-center">
-                    <p className="text-white font-semibold">Este dia será marcado como folga</p>
-                    <p className="text-slate-400 text-sm mt-1">Nenhum valor financeiro será registrado</p>
+                    <p className="text-slate-900 dark:text-white font-semibold">Este dia será marcado como folga</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Nenhum valor financeiro será registrado</p>
                   </CardContent>
                 </Card>
               ) : (
                 /* Card único de resumo */
-                <Card className="bg-slate-800/50 border-slate-700">
+                <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
                   <CardContent className="p-4 space-y-4">
                     {/* Dados da jornada em linha */}
                     <div className="flex justify-between text-sm">
                       <div className="text-center">
-                        <p className="text-slate-400 text-xs">KM</p>
-                        <p className="text-white font-bold">{km}</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-xs">KM</p>
+                        <p className="text-slate-900 dark:text-white font-bold">{km}</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-slate-400 text-xs">Horas</p>
-                        <p className="text-white font-bold">{horas}h</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-xs">Horas</p>
+                        <p className="text-slate-900 dark:text-white font-bold">{horas}h</p>
                       </div>
                       {numCorridas && (
                         <div className="text-center">
-                          <p className="text-slate-400 text-xs">Corridas</p>
-                          <p className="text-white font-bold">{numCorridas}</p>
+                          <p className="text-slate-500 dark:text-slate-400 text-xs">Corridas</p>
+                          <p className="text-slate-900 dark:text-white font-bold">{numCorridas}</p>
                         </div>
                       )}
                       {user && (
                         <div className="text-center">
-                          <p className="text-slate-400 text-xs">Média</p>
+                          <p className="text-slate-500 dark:text-slate-400 text-xs">Média</p>
                           <p className="text-blue-400 font-bold">{user.mediaGasolina} km/l</p>
                         </div>
                       )}
                     </div>
 
                     {/* Separador */}
-                    <div className="border-t border-slate-700" />
+                    <div className="border-t border-slate-200 dark:border-slate-700" />
 
                     {/* Mini cálculo visual */}
                     <div className="space-y-2">
@@ -534,29 +534,29 @@ export function Register({ date }: RegisterProps = {}) {
                         <span className="text-emerald-400 font-bold text-lg">{formatarMoeda(bruto)}</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-400 text-sm">− Combustível (est.)</span>
+                        <span className="text-slate-500 dark:text-slate-400 text-sm">− Combustível (est.)</span>
                         <span className="text-amber-400 font-medium">- {formatarMoeda(custoCombustivel)}</span>
                       </div>
                       {alimentacao > 0 && (
                         <div className="flex justify-between items-center">
-                          <span className="text-slate-400 text-sm">− Alimentação</span>
+                          <span className="text-slate-500 dark:text-slate-400 text-sm">− Alimentação</span>
                           <span className="text-amber-400 font-medium">- {formatarMoeda(alimentacao)}</span>
                         </div>
                       )}
                       {outros > 0 && (
                         <div className="flex justify-between items-center">
-                          <span className="text-slate-400 text-sm">− Outros gastos</span>
+                          <span className="text-slate-500 dark:text-slate-400 text-sm">− Outros gastos</span>
                           <span className="text-amber-400 font-medium">- {formatarMoeda(outros)}</span>
                         </div>
                       )}
-                      <div className="border-t border-dashed border-slate-600 my-1" />
+                      <div className="border-t border-dashed border-slate-300 dark:border-slate-600 my-1" />
                       <div className={`flex justify-between items-center p-2 rounded-lg ${lucroLiquido >= metaDiaria
                         ? 'bg-emerald-500/10'
                         : lucroLiquido > 0
                           ? 'bg-amber-500/10'
                           : 'bg-red-500/10'
                         }`}>
-                        <span className="text-white font-semibold text-sm">Lucro Líquido</span>
+                        <span className="text-slate-900 dark:text-white font-semibold text-sm">Lucro Líquido</span>
                         <span className={`font-bold text-xl ${lucroLiquido >= metaDiaria ? 'text-emerald-400' : lucroLiquido > 0 ? 'text-amber-400' : 'text-red-400'
                           }`}>
                           {formatarMoeda(lucroLiquido)}
@@ -572,13 +572,13 @@ export function Register({ date }: RegisterProps = {}) {
       </div>
 
       {/* Botões de Navegação fixos no bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 p-4 z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 p-4 z-50">
         <div className="max-w-md mx-auto flex gap-3">
           {step > 1 ? (
             <Button
               variant="outline"
               onClick={handleBack}
-              className="flex-1 border-slate-600 text-slate-300 py-5"
+              className="flex-1 border-slate-300 dark:border-slate-600 text-slate-300 py-5"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Voltar
@@ -587,7 +587,7 @@ export function Register({ date }: RegisterProps = {}) {
             <Button
               variant="outline"
               onClick={() => setCurrentView('dashboard')}
-              className="flex-1 border-slate-600 text-slate-300 py-5"
+              className="flex-1 border-slate-300 dark:border-slate-600 text-slate-300 py-5"
             >
               Cancelar
             </Button>
