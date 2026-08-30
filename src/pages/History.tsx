@@ -43,8 +43,8 @@ interface ChartTooltipProps {
 const CustomTooltip = ({ active, payload, label }: ChartTooltipProps) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-slate-800/95 backdrop-blur-sm border border-slate-600 rounded-xl px-3 py-2 shadow-xl">
-        <p className="text-slate-400 text-[10px] mb-1">Dia {label}</p>
+      <div className="bg-white dark:bg-slate-800/95 backdrop-blur-sm border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 shadow-xl">
+        <p className="text-slate-500 dark:text-slate-400 text-[10px] mb-1">Dia {label}</p>
         {payload.map((p, i) => (
           <p key={i} className="text-sm font-semibold" style={{ color: p.color || p.fill }}>
             {p.name}: {formatarMoeda(p.value)}
@@ -60,8 +60,8 @@ const CustomTooltip = ({ active, payload, label }: ChartTooltipProps) => {
 const MonthTooltip = ({ active, payload, label }: ChartTooltipProps) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-slate-800/95 backdrop-blur-sm border border-slate-600 rounded-xl px-3 py-2 shadow-xl">
-        <p className="text-slate-400 text-[10px] mb-1">{label}</p>
+      <div className="bg-white dark:bg-slate-800/95 backdrop-blur-sm border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 shadow-xl">
+        <p className="text-slate-500 dark:text-slate-400 text-[10px] mb-1">{label}</p>
         {payload.map((p, i) => (
           <p key={i} className="text-sm font-semibold" style={{ color: p.color || p.fill }}>
             {p.name}: {formatarMoeda(p.value)}
@@ -193,20 +193,20 @@ export function History() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 pb-24">
       {/* Header */}
-      <div className="bg-slate-900/80 backdrop-blur-lg sticky top-0 z-40 pt-safe">
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg sticky top-0 z-40 pt-safe">
         <div className="max-w-md mx-auto px-4 py-3">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setCurrentView('dashboard')}
-              className="text-slate-400"
+              className="text-slate-500 dark:text-slate-400"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-xl font-bold text-white">Análise</h1>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white">Análise</h1>
           </div>
         </div>
       </div>
@@ -216,16 +216,16 @@ export function History() {
         <div className="flex items-center justify-between mb-5">
           <button
             onClick={handlePrevMonth}
-            className="p-2 rounded-lg bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors"
+            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <h2 className="text-lg font-semibold text-white">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             {getNomeMes(selectedMonth)} {selectedYear}
           </h2>
           <button
             onClick={handleNextMonth}
-            className="p-2 rounded-lg bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors"
+            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -253,30 +253,30 @@ export function History() {
 
             {/* Mini stats */}
             <div className="grid grid-cols-4 gap-2 mb-5">
-              <div className="bg-slate-800/40 rounded-xl p-2.5 text-center border border-slate-700/50">
+              <div className="bg-white dark:bg-slate-800/40 rounded-xl p-2.5 text-center border border-slate-200 dark:border-slate-700/50">
                 <Clock className="w-3.5 h-3.5 text-amber-400 mx-auto mb-1" />
-                <p className="text-sm font-bold text-white">{resumo.totalHoras.toFixed(0)}h</p>
-                <p className="text-[9px] text-slate-500">Horas</p>
+                <p className="text-sm font-bold text-slate-900 dark:text-white">{resumo.totalHoras.toFixed(0)}h</p>
+                <p className="text-[9px] text-slate-400 dark:text-slate-500">Horas</p>
               </div>
-              <div className="bg-slate-800/40 rounded-xl p-2.5 text-center border border-slate-700/50">
+              <div className="bg-white dark:bg-slate-800/40 rounded-xl p-2.5 text-center border border-slate-200 dark:border-slate-700/50">
                 <Route className="w-3.5 h-3.5 text-blue-400 mx-auto mb-1" />
-                <p className="text-sm font-bold text-white">{resumo.totalKm.toFixed(0)}</p>
-                <p className="text-[9px] text-slate-500">KM</p>
+                <p className="text-sm font-bold text-slate-900 dark:text-white">{resumo.totalKm.toFixed(0)}</p>
+                <p className="text-[9px] text-slate-400 dark:text-slate-500">KM</p>
               </div>
-              <div className="bg-slate-800/40 rounded-xl p-2.5 text-center border border-slate-700/50">
+              <div className="bg-white dark:bg-slate-800/40 rounded-xl p-2.5 text-center border border-slate-200 dark:border-slate-700/50">
                 <Zap className="w-3.5 h-3.5 text-purple-400 mx-auto mb-1" />
-                <p className="text-sm font-bold text-white">{resumo.totalCorridas}</p>
-                <p className="text-[9px] text-slate-500">Corridas</p>
+                <p className="text-sm font-bold text-slate-900 dark:text-white">{resumo.totalCorridas}</p>
+                <p className="text-[9px] text-slate-400 dark:text-slate-500">Corridas</p>
               </div>
-              <div className="bg-slate-800/40 rounded-xl p-2.5 text-center border border-slate-700/50">
+              <div className="bg-white dark:bg-slate-800/40 rounded-xl p-2.5 text-center border border-slate-200 dark:border-slate-700/50">
                 <Gauge className="w-3.5 h-3.5 text-emerald-400 mx-auto mb-1" />
-                <p className="text-sm font-bold text-white">{resumo.diasTrabalhados}</p>
-                <p className="text-[9px] text-slate-500">Dias</p>
+                <p className="text-sm font-bold text-slate-900 dark:text-white">{resumo.diasTrabalhados}</p>
+                <p className="text-[9px] text-slate-400 dark:text-slate-500">Dias</p>
               </div>
             </div>
 
             <Tabs defaultValue="graficos" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-slate-800/80 rounded-xl h-10 p-1">
+              <TabsList className="grid w-full grid-cols-2 bg-white dark:bg-slate-800/80 rounded-xl h-10 p-1">
                 <TabsTrigger value="graficos" className="rounded-lg data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400 text-sm font-medium">
                   📊 Gráficos
                 </TabsTrigger>
@@ -287,11 +287,11 @@ export function History() {
 
               <TabsContent value="graficos" className="space-y-4 mt-4">
                 {/* Gráfico 1: Bruto x Meta — Barras com gradiente */}
-                <Card className="bg-slate-800/30 border-slate-700/50 backdrop-blur-sm overflow-hidden">
+                <Card className="bg-white dark:bg-slate-800/30 border-slate-200 dark:border-slate-700/50 backdrop-blur-sm overflow-hidden">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-semibold text-white">Faturamento por Dia</h3>
-                      <span className="text-[10px] text-slate-500 bg-slate-700/50 px-2 py-0.5 rounded-full">
+                      <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Faturamento por Dia</h3>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700/50 px-2 py-0.5 rounded-full">
                         Meta: {formatarMoeda(monthConfig?.metaDiaria || 0)}
                       </span>
                     </div>
@@ -342,10 +342,10 @@ export function History() {
 
                 {/* Gráfico 2: Evolução acumulada — Área */}
                 {evolucaoData.length > 1 && (
-                  <Card className="bg-slate-800/30 border-slate-700/50 backdrop-blur-sm overflow-hidden">
+                  <Card className="bg-white dark:bg-slate-800/30 border-slate-200 dark:border-slate-700/50 backdrop-blur-sm overflow-hidden">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-sm font-semibold text-white">Evolução Acumulada</h3>
+                        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Evolução Acumulada</h3>
                         <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
                           {formatarMoeda(evolucaoData[evolucaoData.length - 1]?.brutoAcumulado || 0)}
                         </span>
@@ -378,9 +378,9 @@ export function History() {
 
                 {/* Gráfico 3: Distribuição Financeira — Donut estilizado */}
                 {distribuicaoData.length > 0 && (
-                  <Card className="bg-slate-800/30 border-slate-700/50 backdrop-blur-sm overflow-hidden">
+                  <Card className="bg-white dark:bg-slate-800/30 border-slate-200 dark:border-slate-700/50 backdrop-blur-sm overflow-hidden">
                     <CardContent className="p-4">
-                      <h3 className="text-sm font-semibold text-white mb-3">Distribuição Financeira</h3>
+                      <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Distribuição Financeira</h3>
                       <div className="flex items-center gap-3">
                         <div className="h-36 w-36 flex-shrink-0">
                           <ResponsiveContainer width="100%" height="100%">
@@ -410,11 +410,11 @@ export function History() {
                               <div className="flex items-center justify-between text-xs mb-1">
                                 <div className="flex items-center gap-2">
                                   <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                                  <span className="text-slate-400">{item.name}</span>
+                                  <span className="text-slate-500 dark:text-slate-400">{item.name}</span>
                                 </div>
-                                <span className="text-white font-semibold">{formatarMoeda(item.value)}</span>
+                                <span className="text-slate-900 dark:text-white font-semibold">{formatarMoeda(item.value)}</span>
                               </div>
-                              <div className="w-full h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+                              <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden">
                                 <div
                                   className="h-full rounded-full transition-all duration-500"
                                   style={{
@@ -433,9 +433,9 @@ export function History() {
                 )}
 
                 {/* Card de Eficiência com visual premium */}
-                <Card className="bg-slate-800/30 border-slate-700/50 backdrop-blur-sm overflow-hidden">
+                <Card className="bg-white dark:bg-slate-800/30 border-slate-200 dark:border-slate-700/50 backdrop-blur-sm overflow-hidden">
                   <CardContent className="p-4">
-                    <h3 className="text-sm font-semibold text-white mb-3">Indicadores de Eficiência</h3>
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Indicadores de Eficiência</h3>
                     <div className="space-y-3">
                       {[
                         {
@@ -467,12 +467,12 @@ export function History() {
                           bg: 'bg-purple-500/10',
                         },
                       ].map((metric) => (
-                        <div key={metric.label} className="flex items-center justify-between p-2 rounded-lg bg-slate-800/40 border border-slate-700/30">
+                        <div key={metric.label} className="flex items-center justify-between p-2 rounded-lg bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/30">
                           <div className="flex items-center gap-2.5">
                             <div className={`w-7 h-7 ${metric.bg} rounded-lg flex items-center justify-center ${metric.color}`}>
                               {metric.icon}
                             </div>
-                            <span className="text-xs text-slate-400">{metric.label}</span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400">{metric.label}</span>
                           </div>
                           <span className={`text-sm font-bold ${metric.color}`}>{metric.value}</span>
                         </div>
@@ -483,11 +483,11 @@ export function History() {
 
                 {/* Gráfico 4: Comparativo entre meses */}
                 {comparativoMeses.length > 0 && (
-                  <Card className="bg-slate-800/30 border-slate-700/50 backdrop-blur-sm overflow-hidden">
+                  <Card className="bg-white dark:bg-slate-800/30 border-slate-200 dark:border-slate-700/50 backdrop-blur-sm overflow-hidden">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-sm font-semibold text-white">Comparativo Mensal</h3>
-                        <span className="text-[10px] text-slate-500 bg-slate-700/50 px-2 py-0.5 rounded-full">
+                        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Comparativo Mensal</h3>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700/50 px-2 py-0.5 rounded-full">
                           Últimos {comparativoMeses.length} meses
                         </span>
                       </div>
@@ -544,7 +544,7 @@ export function History() {
                     const isConfirming = confirmDeleteId === record.id;
 
                     return (
-                      <Card key={record.id} className="bg-slate-800/30 border-slate-700/50 overflow-hidden">
+                      <Card key={record.id} className="bg-white dark:bg-slate-800/30 border-slate-200 dark:border-slate-700/50 overflow-hidden">
                         <CardContent className="p-0">
                           <div className="flex items-stretch">
                             {/* Indicador de cor lateral */}
@@ -556,11 +556,11 @@ export function History() {
                             >
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <p className="text-white font-semibold text-sm">
+                                  <p className="text-slate-900 dark:text-white font-semibold text-sm">
                                     {record.data.split('-')[2]}/{record.data.split('-')[1]}
-                                    <span className="text-slate-500 font-normal ml-1.5 text-xs">{getDiaSemanaAbrev(record.data)}</span>
+                                    <span className="text-slate-400 dark:text-slate-500 font-normal ml-1.5 text-xs">{getDiaSemanaAbrev(record.data)}</span>
                                   </p>
-                                  <p className="text-[10px] text-slate-500 mt-0.5">
+                                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
                                     {record.horasTrabalhadas}h • {record.kmRodado}km
                                     {record.numCorridas ? ` • ${record.numCorridas} corridas` : ''}
                                   </p>
@@ -569,7 +569,7 @@ export function History() {
                                   <p className="text-emerald-400 font-bold text-sm">
                                     {formatarMoeda(record.faturamentoBruto)}
                                   </p>
-                                  <p className="text-[10px] text-slate-500">
+                                  <p className="text-[10px] text-slate-400 dark:text-slate-500">
                                     Líq. {formatarMoeda(record.lucroLiquido)}
                                   </p>
                                   {monthConfig && monthConfig.custoFixoDiario > 0 && (
@@ -581,23 +581,23 @@ export function History() {
                               </div>
                               {/* Mini barra de progresso vs meta */}
                               <div className="mt-2 flex items-center gap-2">
-                                <div className="flex-1 h-1 bg-slate-700/50 rounded-full overflow-hidden">
+                                <div className="flex-1 h-1 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden">
                                   <div
                                     className={`h-full rounded-full transition-all ${atingiuMeta ? 'bg-emerald-500' : record.faturamentoBruto >= metaDiaria * 0.8 ? 'bg-amber-500' : 'bg-red-500'}`}
                                     style={{ width: `${Math.min(percentMeta, 100)}%` }}
                                   />
                                 </div>
-                                <span className={`text-[9px] font-medium ${atingiuMeta ? 'text-emerald-400' : 'text-slate-500'}`}>
+                                <span className={`text-[9px] font-medium ${atingiuMeta ? 'text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
                                   {percentMeta.toFixed(0)}%
                                 </span>
                               </div>
                               {record.metaDiaDinamica != null && record.metaDiaDinamica > 0 ? (
-                                <p className="text-[9px] text-slate-500 mt-1">
-                                  Meta do dia: <span className="text-slate-400 font-medium">{formatarMoeda(record.metaDiaDinamica)}</span>
+                                <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-1">
+                                  Meta do dia: <span className="text-slate-500 dark:text-slate-400 font-medium">{formatarMoeda(record.metaDiaDinamica)}</span>
                                 </p>
                               ) : metaDiaria > 0 && (
-                                <p className="text-[9px] text-slate-500 mt-1">
-                                  Meta do dia: <span className="text-slate-400 font-medium">{formatarMoeda(metaDiaria)}</span>
+                                <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-1">
+                                  Meta do dia: <span className="text-slate-500 dark:text-slate-400 font-medium">{formatarMoeda(metaDiaria)}</span>
                                 </p>
                               )}
                             </button>
@@ -615,7 +615,7 @@ export function History() {
                                   <button
                                     type="button"
                                     onClick={() => setConfirmDeleteId(null)}
-                                    className="text-[10px] text-slate-400 bg-slate-700/40 rounded-lg px-2 py-1.5"
+                                    className="text-[10px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/40 rounded-lg px-2 py-1.5"
                                   >
                                     Cancelar
                                   </button>
@@ -624,7 +624,7 @@ export function History() {
                                 <button
                                   type="button"
                                   onClick={() => setConfirmDeleteId(record.id)}
-                                  className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                                  className="p-2 rounded-lg text-slate-400 dark:text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
@@ -639,12 +639,12 @@ export function History() {
             </Tabs>
           </>
         ) : (
-          <Card className="bg-slate-800/30 border-slate-700/50">
+          <Card className="bg-white dark:bg-slate-800/30 border-slate-200 dark:border-slate-700/50">
             <CardContent className="p-10 text-center">
-              <div className="w-16 h-16 bg-slate-700/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Calendar className="w-8 h-8 text-slate-600" />
               </div>
-              <p className="text-slate-400 font-medium">Nenhum registro neste mês</p>
+              <p className="text-slate-500 dark:text-slate-400 font-medium">Nenhum registro neste mês</p>
               <p className="text-slate-600 text-sm mt-1">Registre seus dias para ver a análise aqui</p>
             </CardContent>
           </Card>

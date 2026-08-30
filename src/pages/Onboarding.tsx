@@ -35,28 +35,28 @@ export function Onboarding() {
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4">
         <div className="text-center">
           <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
             <Check className="w-10 h-10 text-emerald-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Pronto!</h2>
-          <p className="text-slate-400">Vamos começar a registrar seus ganhos</p>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Pronto!</h2>
+          <p className="text-slate-500 dark:text-slate-400">Vamos começar a registrar seus ganhos</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 pt-safe">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4 pt-safe">
       <div className="max-w-md mx-auto pt-8">
-        <Card className="bg-slate-800/50 border-slate-700">
+        <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
           <CardHeader className="text-center">
             <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <Car className="w-8 h-8 text-emerald-400" />
             </div>
-            <CardTitle className="text-2xl text-white">Bem-vindo ao Motorista Pro</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardTitle className="text-2xl text-slate-900 dark:text-white">Bem-vindo ao Motorista Pro</CardTitle>
+            <CardDescription className="text-slate-500 dark:text-slate-400">
               Configure seu perfil para começar
             </CardDescription>
           </CardHeader>
@@ -70,7 +70,7 @@ export function Onboarding() {
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
                 placeholder="Ex: João Silva"
-                className="bg-slate-900 border-slate-600 text-white placeholder:text-slate-500"
+                className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 autoFocus
               />
             </div>
@@ -84,7 +84,7 @@ export function Onboarding() {
                 value={carro}
                 onChange={(e) => setCarro(e.target.value)}
                 placeholder="Ex: Onix 2022"
-                className="bg-slate-900 border-slate-600 text-white placeholder:text-slate-500"
+                className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
               />
             </div>
 
@@ -99,9 +99,9 @@ export function Onboarding() {
                 value={mediaGasolina}
                 onChange={(e) => setMediaGasolina(e.target.value)}
                 placeholder="Ex: 12"
-                className="bg-slate-900 border-slate-600 text-white placeholder:text-slate-500"
+                className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
               />
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-400 dark:text-slate-500">
                 Quantos quilômetros seu carro faz com 1 litro de gasolina
               </p>
             </div>
@@ -117,9 +117,9 @@ export function Onboarding() {
                 value={precoCombustivel}
                 onChange={(e) => setPrecoCombustivel(e.target.value)}
                 placeholder="Ex: 5,50"
-                className="bg-slate-900 border-slate-600 text-white placeholder:text-slate-500"
+                className="bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
               />
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-400 dark:text-slate-500">
                 Usado para estimar o custo de combustível em cada registro
               </p>
             </div>
