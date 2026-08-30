@@ -240,4 +240,19 @@ describe('storage: export/import', () => {
     expect(() => importData('{not valid json')).not.toThrow();
     expect(importData('{not valid json')).toBe(false);
   });
+
+  it('importData rejects valid JSON with the wrong shape and does not touch storage', () => {
+    saveUser(makeUser());
+    expect(importData(JSON.stringify({ user: 'not an object' }))).toBe(false);
+    expect(importData(JSON.stringify({ records: 'not an array' }))).toBe(false);
+    expect(importData(JSON.stringify({ records: [{ semData: true }] }))).toBe(false);
+    expect(importData(JSON.stringify({ monthConfigs: [] }))).toBe(false);
+    // storage was never overwritten by any of the rejected imports
+    expect(getUser()).toEqual(makeUser());
+  });
+
+  it('importData accepts a payload with only some fields present', () => {
+    expect(importData(JSON.stringify({ records: [makeRecord()] }))).toBe(true);
+    expect(getRecords()).toEqual([makeRecord()]);
+  });
 });

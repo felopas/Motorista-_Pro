@@ -142,10 +142,41 @@ export function exportData(): string {
   return JSON.stringify(data, null, 2);
 }
 
+// Valida o formato mínimo esperado de um backup antes de aceitar - um JSON
+// malformado ou de outra origem não deve conseguir corromper o estado salvo.
+function ehBackupValido(data: unknown): data is {
+  user?: UserProfile;
+  records?: DailyRecord[];
+  monthConfigs?: Record<string, MonthConfig>;
+} {
+  if (typeof data !== 'object' || data === null) return false;
+  const d = data as Record<string, unknown>;
+
+  if (d.user !== undefined) {
+    if (typeof d.user !== 'object' || d.user === null) return false;
+    const u = d.user as Record<string, unknown>;
+    if (typeof u.nome !== 'string' || typeof u.carro !== 'string') return false;
+  }
+
+  if (d.records !== undefined) {
+    if (!Array.isArray(d.records)) return false;
+    if (!d.records.every((r) => typeof r === 'object' && r !== null && typeof (r as Record<string, unknown>).data === 'string')) {
+      return false;
+    }
+  }
+
+  if (d.monthConfigs !== undefined) {
+    if (typeof d.monthConfigs !== 'object' || d.monthConfigs === null || Array.isArray(d.monthConfigs)) return false;
+  }
+
+  return true;
+}
+
 // Import data from JSON
 export function importData(jsonString: string): boolean {
   try {
-    const data = JSON.parse(jsonString);
+    const data: unknown = JSON.parse(jsonString);
+    if (!ehBackupValido(data)) return false;
     if (data.user) saveUser(data.user);
     if (data.records) localStorage.setItem(STORAGE_KEYS.RECORDS, JSON.stringify(data.records));
     if (data.monthConfigs) localStorage.setItem(STORAGE_KEYS.MONTH_CONFIGS, JSON.stringify(data.monthConfigs));
