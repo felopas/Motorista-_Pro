@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Calendar, Target, AlertTriangle, DollarSign, Check } from 'lucide-react';
+import { ArrowLeft, Calendar, Target, AlertTriangle, DollarSign, Check, Pencil } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import type { MonthConfig } from '@/types';
 import { getDiasUteis, calcularMetaDiaria, getNomeMes, formatarMoeda } from '@/lib/calculations';
@@ -22,6 +22,7 @@ export function MonthConfigPage() {
   const [metaMensal, setMetaMensal] = useState(metaPadrao);
   const [showSuccess, setShowSuccess] = useState(false);
   const [salvarComoPadrao, setSalvarComoPadrao] = useState(false);
+  const [editandoMeta, setEditandoMeta] = useState(false);
 
   const diasNoMes = new Date(ano, mes, 0).getDate();
   const diasUteis = getDiasUteis(ano, mes);
@@ -45,6 +46,7 @@ export function MonthConfigPage() {
       setMetaMensal(metaPadrao);
     }
     setSalvarComoPadrao(false);
+    setEditandoMeta(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ano, mes, getMonthConfig, diasNoMes, diasUteis]);
 
@@ -197,29 +199,56 @@ export function MonthConfigPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-slate-300">Quanto quer faturar em {getNomeMes(mes)}?</Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
-                <Input
-                  type="number"
-                  value={metaMensal}
-                  onChange={(e) => setMetaMensal(Number(e.target.value))}
-                  className="pl-10 bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
-                />
-              </div>
-              {metaMensal !== metaPadrao && (
-                <label className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 pt-1">
-                  <input
-                    type="checkbox"
-                    checked={salvarComoPadrao}
-                    onChange={(e) => setSalvarComoPadrao(e.target.checked)}
-                    className="rounded border-slate-300 dark:border-slate-600 accent-emerald-500"
+            {editandoMeta ? (
+              <div className="space-y-2">
+                <Label className="text-slate-300">Quanto quer faturar em {getNomeMes(mes)}?</Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
+                  <Input
+                    type="number"
+                    value={metaMensal}
+                    onChange={(e) => setMetaMensal(Number(e.target.value))}
+                    className="pl-10 bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
+                    autoFocus
                   />
-                  Usar {formatarMoeda(metaMensal)} como meta padrão para os próximos meses
-                </label>
-              )}
-            </div>
+                </div>
+                {metaMensal !== metaPadrao && (
+                  <label className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 pt-1">
+                    <input
+                      type="checkbox"
+                      checked={salvarComoPadrao}
+                      onChange={(e) => setSalvarComoPadrao(e.target.checked)}
+                      className="rounded border-slate-300 dark:border-slate-600 accent-emerald-500"
+                    />
+                    Usar {formatarMoeda(metaMensal)} como meta padrão para os próximos meses
+                  </label>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setEditandoMeta(false)}
+                  className="text-xs text-emerald-500 dark:text-emerald-400 font-medium pt-1"
+                >
+                  Concluir edição
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">
+                    {metaMensal === metaPadrao ? `Meta padrão de ${getNomeMes(mes)}` : `Meta de ${getNomeMes(mes)} (personalizada)`}
+                  </p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">{formatarMoeda(metaMensal)}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditandoMeta(true)}
+                  className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 hover:text-emerald-500 dark:hover:text-emerald-400 border border-slate-300 dark:border-slate-600 rounded-lg px-2.5 py-1.5 transition-colors"
+                >
+                  <Pencil className="w-3 h-3" />
+                  Editar
+                </button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
