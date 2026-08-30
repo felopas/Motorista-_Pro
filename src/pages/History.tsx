@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -26,13 +26,26 @@ import {
   ReferenceLine,
 } from 'recharts';
 
+interface ChartTooltipPayloadItem {
+  name: string;
+  value: number;
+  color?: string;
+  fill?: string;
+}
+
+interface ChartTooltipProps {
+  active?: boolean;
+  payload?: ChartTooltipPayloadItem[];
+  label?: string | number;
+}
+
 // Custom tooltip component
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: ChartTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-slate-800/95 backdrop-blur-sm border border-slate-600 rounded-xl px-3 py-2 shadow-xl">
         <p className="text-slate-400 text-[10px] mb-1">Dia {label}</p>
-        {payload.map((p: any, i: number) => (
+        {payload.map((p, i) => (
           <p key={i} className="text-sm font-semibold" style={{ color: p.color || p.fill }}>
             {p.name}: {formatarMoeda(p.value)}
           </p>
@@ -43,8 +56,34 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+// Tooltip para o comparativo mensal (label já é o mês, sem prefixo "Dia")
+const MonthTooltip = ({ active, payload, label }: ChartTooltipProps) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-slate-800/95 backdrop-blur-sm border border-slate-600 rounded-xl px-3 py-2 shadow-xl">
+        <p className="text-slate-400 text-[10px] mb-1">{label}</p>
+        {payload.map((p, i) => (
+          <p key={i} className="text-sm font-semibold" style={{ color: p.color || p.fill }}>
+            {p.name}: {formatarMoeda(p.value)}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
+interface PieLabelProps {
+  cx: number;
+  cy: number;
+  midAngle: number;
+  innerRadius: number;
+  outerRadius: number;
+  percent: number;
+}
+
 // Custom pie label
-const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: PieLabelProps) => {
   const RADIAN = Math.PI / 180;
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -101,11 +140,39 @@ export function History() {
       return acc;
     }, [] as { dia: string; brutoAcumulado: number; metaAcumulada: number }[]);
 
-  // Distribuição financeira
+  // Distribuição financeira (Bruto = Lucro real + Custos Variáveis + Custos Fixos)
   const distribuicaoData = resumo ? [
-    { name: 'Lucro Líquido', value: resumo.totalLucro, color: '#34d399' },
-    { name: 'Combustível', value: resumo.totalCustosVariaveis, color: '#fb923c' },
+    { name: 'Lucro Líquido', value: resumo.totalLucroComFixos, color: '#34d399' },
+    { name: 'Custos Variáveis', value: resumo.totalCustosVariaveis, color: '#fb923c' },
+    { name: 'Custos Fixos', value: resumo.custoFixoRateio, color: '#a78bfa' },
   ].filter(d => d.value > 0) : [];
+
+  // Comparativo dos últimos 6 meses (incluindo o mês selecionado), pulando meses sem configuração
+  const comparativoMeses = useMemo(() => {
+    const alvo: { ano: number; mes: number }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      let mes = selectedMonth - i;
+      let ano = selectedYear;
+      while (mes < 1) {
+        mes += 12;
+        ano -= 1;
+      }
+      alvo.push({ ano, mes });
+    }
+
+    return alvo
+      .map(({ ano, mes }) => {
+        const config = getMonthConfig(ano, mes);
+        if (!config) return null;
+        const records = getRecordsByMonth(ano, mes);
+        const resumoMes = calcularResumoMensal(records, config);
+        return {
+          label: `${getNomeMes(mes).slice(0, 3)}/${String(ano).slice(2)}`,
+          lucro: resumoMes.totalLucroComFixos,
+        };
+      })
+      .filter((d): d is { label: string; lucro: number } => d !== null);
+  }, [selectedMonth, selectedYear, getMonthConfig, getRecordsByMonth]);
 
   const handlePrevMonth = () => {
     if (selectedMonth === 1) {
@@ -177,9 +244,9 @@ export function History() {
               <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/20 p-4">
                 <div className="absolute -top-4 -right-4 w-16 h-16 bg-blue-500/10 rounded-full blur-xl" />
                 <TrendingUp className="w-5 h-5 text-blue-400 mb-2" />
-                <p className="text-[10px] text-blue-300/70 uppercase tracking-wider font-medium">Lucro Líquido</p>
-                <p className={`text-xl font-bold mt-0.5 ${resumo.totalLucro >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
-                  {formatarMoeda(resumo.totalLucro)}
+                <p className="text-[10px] text-blue-300/70 uppercase tracking-wider font-medium">Lucro Líq. (c/ fixos)</p>
+                <p className={`text-xl font-bold mt-0.5 ${resumo.totalLucroComFixos >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
+                  {formatarMoeda(resumo.totalLucroComFixos)}
                 </p>
               </div>
             </div>
@@ -413,6 +480,56 @@ export function History() {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Gráfico 4: Comparativo entre meses */}
+                {comparativoMeses.length > 0 && (
+                  <Card className="bg-slate-800/30 border-slate-700/50 backdrop-blur-sm overflow-hidden">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-semibold text-white">Comparativo Mensal</h3>
+                        <span className="text-[10px] text-slate-500 bg-slate-700/50 px-2 py-0.5 rounded-full">
+                          Últimos {comparativoMeses.length} meses
+                        </span>
+                      </div>
+                      <div className="h-44">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={comparativoMeses} barCategoryGap="25%">
+                            <defs>
+                              <linearGradient id="compGradientPos" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#34d399" stopOpacity={0.9} />
+                                <stop offset="100%" stopColor="#059669" stopOpacity={0.6} />
+                              </linearGradient>
+                              <linearGradient id="compGradientNeg" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#f87171" stopOpacity={0.9} />
+                                <stop offset="100%" stopColor="#dc2626" stopOpacity={0.6} />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                            <XAxis dataKey="label" stroke="#475569" fontSize={10} tickLine={false} axisLine={false} />
+                            <YAxis
+                              stroke="#475569"
+                              fontSize={9}
+                              tickLine={false}
+                              axisLine={false}
+                              tickFormatter={(v) => v >= 1000 || v <= -1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`}
+                              width={35}
+                            />
+                            <Tooltip content={<MonthTooltip />} cursor={{ fill: 'rgba(148, 163, 184, 0.05)' }} />
+                            <ReferenceLine y={0} stroke="#475569" strokeWidth={1} />
+                            <Bar dataKey="lucro" name="Lucro Líq." radius={[6, 6, 6, 6]} maxBarSize={28}>
+                              {comparativoMeses.map((entry, index) => (
+                                <Cell
+                                  key={`comp-cell-${index}`}
+                                  fill={entry.lucro >= 0 ? 'url(#compGradientPos)' : 'url(#compGradientNeg)'}
+                                />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               <TabsContent value="dias" className="space-y-2 mt-4">
@@ -455,6 +572,11 @@ export function History() {
                                   <p className="text-[10px] text-slate-500">
                                     Líq. {formatarMoeda(record.lucroLiquido)}
                                   </p>
+                                  {monthConfig && monthConfig.custoFixoDiario > 0 && (
+                                    <p className="text-[9px] text-slate-600">
+                                      c/ fixos: {formatarMoeda(record.lucroLiquido - monthConfig.custoFixoDiario)}
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                               {/* Mini barra de progresso vs meta */}
