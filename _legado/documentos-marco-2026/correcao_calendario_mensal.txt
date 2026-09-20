@@ -1,0 +1,233 @@
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    CORREÇÕES APLICADAS - APP MOTORISTA PRO                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+✅ CORREÇÃO PRINCIPAL: Cálculo dinâmico por mês
+✅ NOVO DIFERENCIAL: Calendário interativo como interface principal
+
+================================================================================
+COMPARAÇÃO: ERRO vs CORRETO
+================================================================================
+
+❌ ANTES (Errado):
+   - 26 dias fixos para todos os meses
+   - Meta diária sempre R$ 423,08
+   - Custo fixo sempre R$ 126,92
+
+✅ DEPOIS (Correto):
+
+   MARÇO 2026 (31 dias, 26 úteis):
+   - Dias planejados: 26
+   - Meta diária: R$ 423,08
+   - Custo fixo/dia: R$ 126,92
+
+   ABRIL 2026 (30 dias, 25 úteis):
+   - Dias planejados: 20 (usuário escolhe folgas)
+   - Meta diária: R$ 550,00
+   - Custo fixo/dia: R$ 165,00
+
+   FEVEREIRO 2026 (28 dias, 24 úteis):
+   - Dias planejados: 24
+   - Meta diária: R$ 458,33
+   - Custo fixo/dia: R$ 137,50
+
+================================================================================
+CALENDÁRIO: O DIFERENCIAL VISUAL
+================================================================================
+
+O calendário é a INTERFACE PRINCIPAL, não apenas um relatório!
+
+FUNCIONALIDADES:
+1. Heatmap automático (cores baseadas no desempenho)
+2. Toque para registrar/editar
+3. Swipe para navegar meses
+4. Visualização anual (12 mini calendários)
+5. Legenda inteligente
+
+CORES DO SISTEMA:
+🟢 VERDE  = Dia bom (bateu meta + lucro/hora > R$ 7,50)
+🟡 AMARELO = Regular (positivo mas abaixo da meta)
+🔴 VERMELHO = Ruim (prejuízo ou lucro/hora < R$ 5,00)
+⬜ CINZA = Folga planejada
+⚪ BRANCO = Sem registro
+🔵 AZUL = Hoje
+
+================================================================================
+FLUXO DO USUÁRIO COM CALENDÁRIO
+================================================================================
+
+ENTRADA NO APP:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  CALENDÁRIO MARÇO 2026                                                      │
+│                                                                             │
+│  Dom   Seg   Ter   Qua   Qui   Sex   Sáb                                    │
+│                                                                             │
+│   1     2     3     4     5     6     7                                     │
+│  🟢    ⬜    ⬜    ⬜    ⬜    ⬜    ⬜    ← Dia 1 já registrado              │
+│ R$415                                                                       │
+│                                                                             │
+│   8     9    10    11    12    13    14                                     │
+│  ⬜    ⬜    ⬜    ⬜    ⬜    ⬜    ⬜    ← Dias em branco                  │
+│                                                                             │
+│  [Toque em qualquer dia para registrar ou ver detalhes]                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TOQUE EM DIA VAZIO:
+→ Abre tela de registro pré-preenchida com a data
+
+TOQUE EM DIA COM REGISTRO:
+→ Abre detalhes completos (receita, custos, métricas)
+
+SWIPE LEFT/RIGHT:
+→ Navega entre meses (com cálculos específicos de cada um)
+
+================================================================================
+CONFIGURAÇÃO MENSAL (Obrigatória no início de cada mês)
+================================================================================
+
+Antes de usar o mês, o usuário DEVE configurar:
+
+1. Quantos dias vai trabalhar (slider 1-31)
+2. Quais dias são folga (seleção múltipla)
+3. Meta de faturamento (default: R$ 11.000)
+
+SISTEMA CALCULA AUTOMATICAMENTE:
+- Dias úteis do mês (excluindo domingos)
+- Dias planejados (úteis - folgas)
+- Meta diária necessária
+- Custo fixo por dia
+
+EXEMPLO CONFIGURAÇÃO:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ABRIL 2026                                                                 │
+│                                                                             │
+│  Dias no mês: 30                                                            │
+│  Dias úteis: 25 (excluindo 5 domingos)                                      │
+│                                                                             │
+│  Quantos dias vai trabalhar?                                                │
+│  [========|========>] 20 dias                                              │
+│                                                                             │
+│  Folgas adicionais:                                                         │
+│  [✓] 12/04 (Sábado)                                                         │
+│  [✓] 21/04 (Segunda - Tiradentes)                                           │
+│                                                                             │
+│  ─────────────────────────────────────────                                  │
+│  RESULTADO:                                                                 │
+│  • Dias trabalhando: 20                                                     │
+│  • Meta diária: R$ 550,00 (mais alta que março!)                           │
+│  • Custo fixo/dia: R$ 165,00                                               │
+│                                                                             │
+│  [INICIAR MÊS]                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+CÁLCULOS MATEMÁTICOS CORRIGIDOS
+================================================================================
+
+// Obter dias úteis (excluindo domingos)
+function getDiasUteis(ano: number, mes: number): number {
+  const totalDias = new Date(ano, mes, 0).getDate();
+  let uteis = 0;
+  for (let dia = 1; dia <= totalDias; dia++) {
+    const data = new Date(ano, mes - 1, dia);
+    if (data.getDay() !== 0) uteis++; // 0 = Domingo
+  }
+  return uteis;
+}
+
+// Custo fixo diário do mês (varia por mês!)
+function calcularCustoFixoDiario(
+  custosTotais: number,
+  diasPlanejados: number
+): number {
+  return custosTotais / diasPlanejados;
+}
+
+// Meta diária base (varia por mês!)
+function calcularMetaDiaria(
+  metaMensal: number,
+  diasPlanejados: number
+): number {
+  return metaMensal / diasPlanejados;
+}
+
+// Meta diária dinâmica (recálculo)
+function calcularMetaDiariaAtualizada(
+  metaMensal: number,
+  realizado: number,
+  diasPlanejados: number,
+  diasTrabalhados: number
+): number {
+  const falta = metaMensal - realizado;
+  const diasRestantes = diasPlanejados - diasTrabalhados;
+  return falta / diasRestantes;
+}
+
+// Determinar cor do dia no calendário
+function getCorDia(registro: DailyRecord, config: MonthConfig): string {
+  if (!registro) return '#1e293b'; // Cinza escuro - sem registro
+  if (registro.ehFolga) return '#334155'; // Cinza - folga
+
+  const liquido = registro.lucroLiquido;
+  const porHora = registro.horas > 0 ? liquido / registro.horas : 0;
+  const metaDiaria = config.metaDiaria;
+
+  if (liquido < 0 || porHora < 5) return '#ef4444'; // Vermelho
+  if (liquido < metaDiaria || porHora < 7.5) return '#eab308'; // Amarelo
+  return '#22c55e'; // Verde
+}
+
+================================================================================
+EXEMPLOS PRÁTICOS POR MÊS
+================================================================================
+
+CENÁRIO: Usuário fatura R$ 415 no primeiro dia de cada mês
+
+MARÇO (26 dias planejados):
+- Meta diária: R$ 423,08
+- Resultado: 🟡 AMARELO (abaixo da meta)
+- Nova meta: R$ 418,18
+
+ABRIL (20 dias planejados):
+- Meta diária: R$ 550,00
+- Resultado: 🔴 VERMELHO (muito abaixo!)
+- Nova meta: R$ 578,95
+- ALERTA: "Você precisa R$ 578/dia para bater a meta!"
+
+FEVEREIRO (24 dias planejados):
+- Meta diária: R$ 458,33
+- Resultado: 🟡 AMARELO
+- Nova meta: R$ 461,54
+
+================================================================================
+IMPACTO NA INTERFACE
+================================================================================
+
+1. DASHBOARD PRINCIPAL:
+   - Mostra calendário do mês atual em destaque
+   - Resumo do dia selecionado abaixo
+   - Botão "Registrar" flutuante
+
+2. NAVEGAÇÃO:
+   - Bottom tab: Dashboard | Calendário | Registrar | Análise | Config
+   - Calendário tem prioridade visual
+
+3. ALERTAS:
+   - Se meta diária > 130% da original → Card vermelho pulsante
+   - Se 3 dias seguidos sem registro → Notificação push
+   - Se dia 10 e < 30% da meta → Alerta "Meta em risco"
+
+================================================================================
+PRÓXIMOS PASSOS ATUALIZADOS
+================================================================================
+
+□ 1. Criar componente Calendar.tsx com heatmap
+□ 2. Implementar MonthConfigContext (configuração mensal)
+□ 3. Criar tela de configuração de mês
+□ 4. Atualizar cálculos para usar dias dinâmicos
+□ 5. Integrar calendário com registros diários
+□ 6. Adicionar navegação por swipe entre meses
+□ 7. Criar visualização anual (12 meses)
+
+================================================================================

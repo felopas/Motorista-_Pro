@@ -1,0 +1,333 @@
+
+================================================================================
+SEÇÃO 5: ARQUITETURA TÉCNICA E STACK
+================================================================================
+
+5.1 ESTRUTURA DE PASTAS (React + TypeScript + Vite)
+────────────────────────────────────────────────────────────────────────────────
+
+motorista-pro/
+├── public/
+│   ├── manifest.json          # Config PWA
+│   ├── icon-192x192.png
+│   └── icon-512x512.png
+├── src/
+│   ├── assets/                # Imagens, fonts
+│   ├── components/            # Componentes reutilizáveis
+│   │   ├── ui/               # Botões, inputs, cards (shadcn)
+│   │   ├── charts/           # Gráficos (Donut, Bar, Line)
+│   │   └── layout/           # Header, BottomNav, Container
+│   ├── contexts/             # React Contexts
+│   │   ├── AuthContext.tsx
+│   │   ├── DashboardContext.tsx
+│   │   └── SettingsContext.tsx
+│   ├── hooks/                # Custom Hooks
+│   │   ├── useLocalStorage.ts
+│   │   ├── useCalculations.ts
+│   │   └── useGoals.ts
+│   ├── lib/                  # Utilitários
+│   │   ├── calculations.ts   # Todas as fórmulas matemáticas
+│   │   ├── dateUtils.ts
+│   │   └── formatters.ts     # Formatação de moeda, data
+│   ├── pages/                # Telas principais
+│   │   ├── Dashboard.tsx
+│   │   ├── Register.tsx
+│   │   ├── Analytics.tsx
+│   │   ├── History.tsx
+│   │   └── Settings.tsx
+│   ├── services/             # Camada de dados
+│   │   ├── database.ts       # IndexedDB/localStorage
+│   │   ├── sync.ts           # Sincronização (futuro)
+│   │   └── export.ts         # Exportar CSV/PDF
+│   ├── styles/               # Tailwind + variáveis CSS
+│   │   ├── globals.css
+│   │   └── variables.css
+│   ├── types/                # TypeScript types
+│   │   ├── models.ts         # Interfaces de dados
+│   │   └── enums.ts
+│   ├── App.tsx
+│   └── main.tsx
+├── index.html
+├── vite.config.ts
+├── tailwind.config.js
+├── tsconfig.json
+└── package.json
+
+5.2 BIBLIOTECAS RECOMENDADAS (Sem IA, apenas ferramentas)
+────────────────────────────────────────────────────────────────────────────────
+
+CORE:
+  - react ^18.2.0
+  - react-dom ^18.2.0
+  - react-router-dom ^6.20.0
+  - typescript ^5.3.0
+
+BUILD:
+  - vite ^5.0.0
+  - @vitejs/plugin-react
+
+ESTILO:
+  - tailwindcss ^3.4.0
+  - postcss
+  - autoprefixer
+  - clsx (classes condicionais)
+  - tailwind-merge
+
+UI COMPONENTS (shadcn/ui base):
+  - @radix-ui/react-* (primitivos acessíveis)
+  - lucide-react (ícones)
+  - class-variance-authority
+
+GRÁFICOS:
+  - recharts (gráficos responsivos)
+  - OR chart.js + react-chartjs-2
+
+FORMULÁRIOS:
+  - react-hook-form
+  - zod (validação)
+  - @hookform/resolvers
+
+PWA:
+  - vite-plugin-pwa
+  - workbox-window
+
+UTILITÁRIOS:
+  - date-fns (manipulação de datas)
+  - uuid (gerar IDs)
+  - localforage (wrapper IndexedDB)
+
+5.3 FLUXO DE DADOS (Data Flow)
+────────────────────────────────────────────────────────────────────────────────
+
+[Usuário] → [Input Tela Registrar] → [Validação Zod]
+    ↓
+[cálculos.ts] → Processa:
+  - Custo Fixo Diário
+  - Custo Variável
+  - Lucro Líquido
+  - Métricas (Líq/Hora, Líq/KM)
+    ↓
+[IndexedDB/localStorage] → Persistência local
+    ↓
+[DashboardContext] → Atualiza estado global
+    ↓
+[UI Components] → Re-render com novos dados
+    ↓
+[Gráficos Recharts] → Atualização visual
+
+5.4 CÁLCULOS MATEMÁTICOS (Implementação)
+────────────────────────────────────────────────────────────────────────────────
+
+Arquivo: src/lib/calculations.ts
+
+// Custo Fixo Diário
+export const calcularCustoFixoDiario = (
+  custosFixos: FixedCost[],
+  ano: number,
+  mes: number
+): number => {
+  const totalMensal = custosFixos
+    .filter(c => c.ativo)
+    .reduce((sum, c) => sum + c.valor_mensal, 0);
+
+  const diasUteis = getDiasUteis(ano, mes);
+  return totalMensal / diasUteis;
+};
+
+// Lucro Líquido
+export const calcularLucroLiquido = (
+  bruto: number,
+  custoFixoDiario: number,
+  custosVariaveis: number
+): number => {
+  return bruto - custoFixoDiario - custosVariaveis;
+};
+
+// Meta Diária Dinâmica
+export const calcularMetaDiariaAtualizada = (
+  metaMensal: number,
+  realizado: number,
+  diasPlanejados: number,
+  diasTrabalhados: number
+): { meta: number; urgencia: 'normal' | 'alta' | 'critica' } => {
+  const falta = metaMensal - realizado;
+  const diasRestantes = diasPlanejados - diasTrabalhados;
+
+  if (diasRestantes <= 0) return { meta: falta, urgencia: 'critica' };
+
+  const metaDiaria = falta / diasRestantes;
+  const metaOriginal = metaMensal / diasPlanejados;
+
+  let urgencia: 'normal' | 'alta' | 'critica' = 'normal';
+  if (metaDiaria > metaOriginal * 1.3) urgencia = 'critica';
+  else if (metaDiaria > metaOriginal * 1.1) urgencia = 'alta';
+
+  return { meta: metaDiaria, urgencia };
+};
+
+// Líquido por Hora
+export const calcularLiquidoPorHora = (
+  liquido: number,
+  horas: number
+): number => {
+  if (horas === 0) return 0;
+  return liquido / horas;
+};
+
+// Líquido por KM
+export const calcularLiquidoPorKM = (
+  liquido: number,
+  km: number
+): number => {
+  if (km === 0) return 0;
+  return liquido / km;
+};
+
+// Percentual da Meta
+export const calcularPercentualMeta = (
+  realizado: number,
+  meta: number
+): number => {
+  if (meta === 0) return 0;
+  return (realizado / meta) * 100;
+};
+
+================================================================================
+SEÇÃO 6: REGRAS DE EXPERIÊNCIA DO USUÁRIO (UX)
+================================================================================
+
+6.1 PRINCÍPIOS NÃO NEGOCIÁVEIS
+────────────────────────────────────────────────────────────────────────────────
+
+1. VELOCIDADE: O motorista não pode esperar. Todas as operações devem
+   ser síncronas (local-first) e responder em < 100ms.
+
+2. VISIBILIDADE: O lucro líquido deve ser o número mais visível em
+   qualquer tela. Não esconda o que importa.
+
+3. URGÊNCIA: A meta diária atualizada deve ser exibida em vermelho
+   quando ultrapassar 130% da meta original.
+
+4. SIMPLICIDADE: Máximo 3 toques para registrar um turno completo.
+
+5. FEEDBACK: Cada ação deve ter feedback visual imediato (toast,
+   animação, mudança de cor).
+
+6.2 MICRO-INTERAÇÕES
+────────────────────────────────────────────────────────────────────────────────
+
+- Botão Registrar: Escala 0.95 no press, volta com spring
+- Cards: Hover elevates shadow, border glow
+- Gráfico: Animação de preenchimento ao carregar
+- Input numérico: Haptic feedback a cada dígito (se disponível)
+- Salvar: Confetti ou check animation no sucesso
+
+6.3 ESTADOS DE ERRO
+────────────────────────────────────────────────────────────────────────────────
+
+- Sem registro hoje: Card amarelo "Você ainda não registrou hoje"
+- Meta impossível: Card vermelho "Meta ajustada: R$ 850/dia"
+- Prejuízo: Números em vermelho com ícone de alerta
+- Offline: Badge sutil "Modo offline - sincronizando..."
+
+================================================================================
+SEÇÃO 7: ROADMAP DE IMPLEMENTAÇÃO (Fases)
+================================================================================
+
+FASE 1 - MVP (Semana 1-2)
+─────────────────────────
+□ Setup projeto React + Vite + Tailwind
+□ Configuração PWA básica
+□ Tela Dashboard com cards estáticos
+□ Tela Registrar com inputs numéricos
+□ Persistência localStorage simples
+□ Cálculos matemáticos básicos
+
+FASE 2 - CORE (Semana 3-4)
+──────────────────────────
+□ Gráfico de rosca funcional
+□ Sistema de metas dinâmicas
+□ Cálculo automático custo fixo
+□ Tela Histórico com lista
+□ Edição/exclusão de registros
+□ Exportar CSV
+
+FASE 3 - ANÁLISE (Semana 5-6)
+─────────────────────────────
+□ Tela Análise com gráficos
+□ Heatmap de produtividade
+□ Comparação dia da semana
+□ Médias móveis
+
+FASE 4 - POLIMENTO (Semana 7-8)
+───────────────────────────────
+□ Animações refinadas
+□ Dark mode perfeito
+□ Testes em dispositivos reais
+□ Otimização performance
+
+================================================================================
+SEÇÃO 8: EXEMPLO DE DADOS (Para testes)
+================================================================================
+
+// Registro baseado na planilha - Dia 1º de Março
+const registroExemplo = {
+  id: "uuid-123",
+  user_id: "user-456",
+  data: "2026-03-01",
+  faturamento_bruto: 415.00,
+  km_rodado: 210.00,
+  horas_trabalhadas: 8.00,
+  num_corridas: 12,
+  custo_combustivel: 80.00,
+  custo_alimentacao: 30.00,
+  custo_outros: 23.70,
+  custo_total: 133.70,
+  lucro_liquido: 281.30,
+  eh_dia_folga: false,
+  observacoes: "Dia produtivo, pouco trânsito"
+};
+
+// Configuração de custos fixos
+const custosFixosExemplo = [
+  { id: 1, descricao: "Seguro", valor_mensal: 800.00, categoria: "seguro", ativo: true },
+  { id: 2, descricao: "IPVA", valor_mensal: 200.00, categoria: "ipva", ativo: true },
+  { id: 3, descricao: "Financiamento", valor_mensal: 1500.00, categoria: "financiamento", ativo: true },
+  { id: 4, descricao: "Manutenção", valor_mensal: 500.00, categoria: "manutencao", ativo: true },
+  { id: 5, descricao: "Outros", valor_mensal: 300.03, categoria: "outro", ativo: true }
+];
+// Total: 3.300,03 (igual planilha)
+
+// Meta mensal
+const metaExemplo = {
+  ano: 2026,
+  mes: 3,
+  meta_bruta: 11000.00,
+  dias_planejados: 26,
+  meta_diaria_base: 423.08
+};
+
+================================================================================
+CONCLUSÃO
+================================================================================
+
+Este documento fornece a base completa para construir o App Motorista Pro
+sem depender de IA generativa para código. Ele inclui:
+
+✓ Modelagem completa do banco de dados
+✓ Todas as fórmulas matemáticas da planilha Excel
+✓ Wireframes detalhados de cada tela
+✓ Design system com cores e componentes
+✓ Arquitetura de pastas e stack tecnológica
+✓ Fluxo de dados e cálculos
+✓ Roadmap de implementação
+
+PRÓXIMOS PASSOS IMEDIATOS:
+1. Criar projeto Vite + React + TypeScript
+2. Instalar Tailwind CSS
+3. Configurar estrutura de pastas
+4. Implementar tela Dashboard estática
+5. Adicionar lógica de cálculos
+6. Conectar persistência local
+
+================================================================================

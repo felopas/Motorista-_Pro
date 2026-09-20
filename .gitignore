@@ -19,3 +19,6 @@ android/.cxx
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Arquivo histórico: binários de versões antigas ficam em disco, fora do repo
+_legado/*.zip
