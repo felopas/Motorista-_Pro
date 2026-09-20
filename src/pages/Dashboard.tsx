@@ -100,7 +100,7 @@ export function Dashboard() {
       </div>
 
       {/* Conteúdo principal - flex-1 para ocupar espaço restante */}
-      <div className="flex-1 max-w-md mx-auto px-3 pt-2 pb-2 flex flex-col gap-2 overflow-hidden w-full">
+      <div className="flex-1 max-w-md mx-auto px-3 pt-2 pb-2 flex flex-col gap-2 overflow-y-auto w-full">
         {/* Ajustar mês (meta/folgas) - sempre disponível, sem bloquear o uso */}
         <button
           onClick={handleConfigurarMes}
@@ -219,8 +219,8 @@ export function Dashboard() {
           </Card>
         )}
 
-        {/* Calendário - flex-1 para preencher o espaço */}
-        <div className="flex-1 min-h-0">
+        {/* Calendário - flex-shrink-0 para manter todas as semanas visíveis, rolando com o resto do conteúdo */}
+        <div className="flex-shrink-0">
           <Calendar
             ano={currentYear}
             mes={currentMonth}
